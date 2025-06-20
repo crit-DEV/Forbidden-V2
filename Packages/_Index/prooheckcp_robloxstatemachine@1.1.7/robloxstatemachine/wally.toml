@@ -1,0 +1,19 @@
+[package]
+name = "prooheckcp/robloxstatemachine"
+description = "This is a State Machine implementation for Roblox. It allows you to easily create states and transitions to move in-between them. You can read it's documentation at: https://github.com/prooheckcp/RobloxStateMachines"
+version = "1.1.7"
+license = "MIT"
+registry = "https://github.com/UpliftGames/wally-index"
+realm = "shared"
+authors = ["Prooheckcp"]
+exclude = ["**"]
+include = [
+    "default.project.json", 
+    "src",
+    "src/StateMachine", 
+    "wally.lock", 
+    "wally.toml",
+    "src/StateMachine/*",
+    "src",
+    "src/*"
+]

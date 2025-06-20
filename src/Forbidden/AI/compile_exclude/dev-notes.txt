@@ -1,0 +1,18 @@
+All modules to be impl:
+    PositionalOptimization
+    ConfigRegistry
+    Visualization
+    Hooking
+    DirectMovement
+    Unstucking
+    MessageQueue
+    A-STAR
+    Precompilation
+    ObstacleDetection
+    Celling
+    Tether
+
+
+
+Features to impl:
+    Pause Current op for character

@@ -1,0 +1,15 @@
+// TODO LIST
+> Math
+
+    > Add the ability to change CollisionGroup by will, but default use the origin part's as it currently is.
+
+
+> AI
+
+    > lots of changes.
+    > port over
+
+
+> ChaseAI
+
+    > Impl Skull's code.

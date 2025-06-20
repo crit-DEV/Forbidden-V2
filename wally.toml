@@ -1,0 +1,8 @@
+[package]
+name = "frank/forbidden-v2"
+version = "0.1.0"
+registry = "https://github.com/UpliftGames/wally-index"
+realm = "shared"
+
+[dependencies]
+robloxstatemachine = "prooheckcp/robloxstatemachine@1.1.7"
