@@ -1,0 +1,49 @@
+-- All Types have a T Prefix
+-- Makes it easier to identify types in the codebase
+-- Makes it so that its easier to locate windows in the codebase
+
+export type Config = {
+    -- Config Metadata
+    NPC: Instance,
+    Presets: {[string]: Config},
+    RestoreDefaults: () -> (),
+    SavePreset: (PresetName: string, SaveGlobally: boolean?) -> (),
+    LoadPreset: (PresetName: string, UseGlobalIfBothFound: boolean?) -> (),
+    ApplyNow: () -> (),
+    -- Actual Settings
+    StopType: StopType,
+    Visualization: Visualization,
+    RequestPrioritization: RequestPrioritization, -- if true, the AI will ignore the stop operation and continue moving to the next target
+    ResetOlderRequests: boolean, -- if true, the AI will ignore older requests when a new request is made
+    Tracking: Tracking
+}
+
+
+type RequestPrioritization = {
+    PreferTimeOverPriority: {
+        Enabled: boolean, -- if true, the AI will prioritize the latest request over a request with a higher priority
+        ResetOlderRequests: boolean, -- if true, the AI will ignore older requests when a new request is made, even after the latest request is processed
+    },
+}
+
+-- TODO:// research how to use roblox doc's to show defaults etc...
+export type StopType = "CurrentPosition" | "NoStopLogic"
+type Visualization = {
+    Enabled: boolean, -- Master control for visualization
+    Path: boolean,
+    PathColor: Color3,
+    Celling: boolean,
+    CellingColor: Color3,
+    MovetoRaycast: boolean,
+    MovetoRaycastColor: Color3,
+    Tether: boolean,
+    TetherColor: Color3
+}
+
+type Tracking = {
+    Enabled: boolean, -- Master control for tracking
+    PredictionMagnitude: number, -- The amount of studs ahead the NPC predicts the target's movement (in direction of the target's movement)
+    CollinearTargetPositionOffset: number, -- If set, the NPC will offset the target's position by this amount when calculating the path 
+}
+
+return {}
