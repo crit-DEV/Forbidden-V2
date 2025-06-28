@@ -1,37 +1,51 @@
+--[[
+Developer History
+    > @crit-dev (@rman501), initial commit
+        o7 to future devs
+
+
+TODO://
+    How do we handle the active request?
+    Store prev path data here?
+        prob in PathfindingProcessor store following:
+            which path failed in past?
+            which path was most recently successful in past?
+                to the same target?
+]]--
+
 -- == Libraries == --
 local TablesLibrary = require(script.Parent.Parent.Libraries.Tables)
 
--- == Types == --
+-- == External Types == --
 local AIT = require(script.Parent.Types)
 
 -- == Forbidden Modules & Architecture == --
 local Defaults = require(script.Parent.ConfigHandler.Defaults)
 
-local myEnum = table.freeze({
-    Testing1 = 1,
-    NextWaypoint = 2,
-})
 
+-- == Internal Types == --
+type StopRequest = {
+    ["RequestType"]: "Stop",
+    ["Time"]: number,
+    ["Yields"]: boolean, 
+    ["Priority"]: number, -- Compares with the StartRequest, if greater, it will be processed first. (only matters if the time is the same)
+    ["ProcessingState"]: AIT.ProcessingState
+}
 
-
+type StartRequest = {
+    ["RequestType"]: "Start",
+    ["Target"]: any?, -- can be any type, but usually a Model or Instance or Location
+    ["Yields"]: boolean,
+    ["Time"]: number,
+    ["Priority"]: number, -- Compares with the EndRequest, if greater, it will be processed first (only matters if the time is the same)
+    ["ProcessingState"]: AIT.ProcessingState
+}
 
 type MQ_Singleton = {
     ["ActiveConfig"]: AIT.Config,
-    ["NewestStartRequest"]: {
-        ["RequestType"]: "Start",
-        ["Target"]: any?, -- can be any type, but usually a Model or Instance or Location
-        ["Yields"]: boolean,
-        ["Time"]: number,
-        ["Priority"]: AIT.RequestPriority, -- Compares with the EndRequest, if greater, it will be processed first (only matters if the time is the same)
-        ["ProcessingState"]: AIT.ProcessingState,
-    },
-    ["NewestStopRequest"]: {
-        ["RequestType"]: "Stop",
-        ["Time"]: number,
-        ["Yields"]: boolean, 
-        ["Priority"]: AIT.RequestPriority, -- Compares with the StartRequest, if greater, it will be processed first. (only matters if the time is the same)
-        ["ProcessingState"]: AIT.ProcessingState,
-    }
+    ["NewestStartRequest"]: StartRequest,
+    ["NewestStopRequest"]: StopRequest,
+    ["ActiveRequest"]: StartRequest? | StopRequest?
 }
 
 type MQ = {
@@ -67,6 +81,7 @@ local function InitializeMQ(NPC: Instance)
             Priority = AIT.RequestPriority.ConvertPriorityToNumber("DefaultStop"), -- default priority
             ProcessingState = "Requested"
         },
+        ActiveRequest = nil,
         Processing = false
     }
 
@@ -84,11 +99,19 @@ local function GetMQSingleton(NPC: Instance): MQ_Singleton
 end
 
 -- == API Functions == --
+
+
 API.GetRequest = function(NPC: Instance) -- TODO:// determine type stuff
 end
 -- TODO:// both ? what should this func purpose be?
 
-API.GetUntouchedRequest = function(NPC: Model)
+
+API.SetActiveRequest = function(NPC: Instance, Request: StartRequest | StopRequest)
+    GetMQSingleton(NPC).ActiveRequest = Request
+end
+
+
+API.GetNewRequest = function(NPC: Instance)
     local MQ_Singleton = GetMQSingleton(NPC)
 
     -- assisting vars
@@ -148,13 +171,29 @@ API.GetUntouchedRequest = function(NPC: Model)
     end
 
     -- Prefer a higher priority?
-    if not MQ_Singleton.ActiveConfig.RequestPrioritization.PreferTimeOverPriority then
+    if not MQ_Singleton.ActiveConfig.RequestPrioritization.PreferTimeOverPriority.Enabled then
         return GetPrioritizedRequest()
     end
 
     -- Prefer a later time?
-    if MQ_Singleton.ActiveConfig.RequestPrioritization.PreferTimeOverPriority then
-        return GetLatestRequest()
+    if MQ_Singleton.ActiveConfig.RequestPrioritization.PreferTimeOverPriority.Enabled then
+        local LatestRequest = GetLatestRequest()
+
+        -- Reset older requests, if setting is enabled
+        if MQ_Singleton.ActiveConfig.RequestPrioritization.PreferTimeOverPriority.ResetOlderRequests then
+
+            if LatestRequest.RequestType == "Start" then
+                MQ_Singleton.NewestStopRequest.ProcessingState = "Processed"
+            end
+
+            if LatestRequest.RequestType == "Stop" then
+                MQ_Singleton.NewestStartRequest.ProcessingState = "Processed"
+            end
+
+        end
+
+        -- Return latest
+        return LatestRequest
     end
 
 
@@ -163,13 +202,13 @@ API.GetUntouchedRequest = function(NPC: Model)
 end
 
 
-API.IsProcessingStartRequest = function(NPC: Model): boolean
+API.IsProcessingStartRequest = function(NPC: Instance): boolean
     local MQ_Singleton = GetMQSingleton(NPC)
     return MQ_Singleton.NewestStartRequest.ProcessingState == "Processing"
 end
 
 
-API.IsProcessingEndRequest = function(NPC: Model): boolean
+API.IsProcessingEndRequest = function(NPC: Instance): boolean
     local MQ_Singleton = GetMQSingleton(NPC)
     return MQ_Singleton.NewestStopRequest.ProcessingState == "Processing"
 end
@@ -177,16 +216,21 @@ end
 --[[
 Returns true if the API is currently processing either a start or end request.
 ]]--
-API.IsProcessing = function(NPC: Model): boolean
+API.IsProcessing = function(NPC: Instance): boolean
     return API.IsProcessingStartRequest(NPC) or API.IsProcessingEndRequest(NPC)
 end
 
-API.SendStartMessage = function(NPC: Model, Target: any, Yields: boolean?, Priority: AIT.RequestPriority | number)
+API.SendStartMessage = function(NPC: Instance, Target: any, Yields: boolean?, Priority: AIT.RequestPriority? | number?)
     local MQ_Singleton = GetMQSingleton(NPC)
 
     local prio: number = AIT.RequestPriority.ConvertPriorityToNumber("DefaultStart")
     if Priority ~= nil then -- can be 0
         prio = AIT.RequestPriority.GetPriorityNumber(Priority)
+    end
+
+    -- If current request is not yet considered
+    if MQ_Singleton.NewestStartRequest.ProcessingState == "Requested" then
+        if MQ_Singleton.NewestStartRequest.Priority > prio then return end -- if non-processed req has greater prio then ignore new call
     end
 
     MQ_Singleton.NewestStartRequest = {
@@ -201,12 +245,17 @@ API.SendStartMessage = function(NPC: Model, Target: any, Yields: boolean?, Prior
 end
 
 
-API.SendStopMessage = function(NPC: Model, Yields: boolean?, Priority: AIT.RequestPriority? | number?)
+API.SendStopMessage = function(NPC: Instance, Yields: boolean?, Priority: AIT.RequestPriority? | number?)
     local MQ_Singleton = GetMQSingleton(NPC)
 
     local prio: number = AIT.RequestPriority.ConvertPriorityToNumber("DefaultStop")
     if Priority ~= nil then -- can be 0
         prio = AIT.RequestPriority.GetPriorityNumber(Priority)
+    end
+
+    -- If current request is not yet considered
+    if MQ_Singleton.NewestStopRequest.ProcessingState == "Requested" then
+        if MQ_Singleton.NewestStopRequest.Priority > prio then return end -- if non-processed req has greater prio then ignore new call
     end
 
     MQ_Singleton.NewestEndRequest = {

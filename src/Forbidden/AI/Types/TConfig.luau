@@ -5,14 +5,16 @@
 export type Config = {
     -- Config Metadata
     NPC: Instance,
-    Presets: {[string]: Config},
     RestoreDefaults: () -> (),
+    RestoreActiveConfig: () -> (),
     SavePreset: (PresetName: string, SaveGlobally: boolean?) -> (),
     LoadPreset: (PresetName: string, UseGlobalIfBothFound: boolean?) -> (),
     ApplyNow: () -> (),
     -- Actual Settings
     StopType: StopType,
     Visualization: Visualization,
+    Debugging: Debugging,
+    AgentInfo: AgentInfo,
     RequestPrioritization: RequestPrioritization, -- if true, the AI will ignore the stop operation and continue moving to the next target
     ResetOlderRequests: boolean, -- if true, the AI will ignore older requests when a new request is made
     Tracking: Tracking
@@ -38,6 +40,22 @@ type Visualization = {
     MovetoRaycastColor: Color3,
     Tether: boolean,
     TetherColor: Color3
+}
+
+type Debugging {
+    Enabled: boolean,
+    StateTransitioning: boolean,
+    OutputToConsole: boolean,
+    -- LogToScript: boolean
+}
+
+type AgentInfo = {
+    AgentRadius: number,
+    AgentHeight: number,
+    AgentCanJump: boolean,
+    AgentCanClimb: boolean,
+    WaypointSpacing: number,
+    Costs: {[string]: number}
 }
 
 type Tracking = {

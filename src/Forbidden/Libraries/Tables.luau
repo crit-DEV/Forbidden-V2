@@ -20,7 +20,7 @@ TablesLibrary.DeepCopy = function <T>(object)
 end
 
 
-TablesLibrary.DeepCopyPaste = function <T>(Target, Overwriter)
+TablesLibrary.DeepCopyPaste = function <T>(Overwriter, Target)
     setmetatable(Target, getmetatable(Overwriter)) -- Clone metaData (@rman501, good that it does this.)
 
     for index: string, value: any in Overwriter do
@@ -38,7 +38,7 @@ TablesLibrary.LockKeyInTable = function <T>(Target, Key: string)
     setmetatable(Target, {
         __index = Target,
         __newindex = function(tab, key, value)
-            if key == Key then
+            if key == Key and tab[key] ~= value then -- TODO:// should we keep the check if same val?
                 error(`Attempt to modify read-only field '{key}' in Table`, 2)
             end
             rawset(tab, key, value)

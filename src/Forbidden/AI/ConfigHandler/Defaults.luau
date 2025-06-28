@@ -1,9 +1,11 @@
 --[[
-@rman501, initial implementation - 6/23/25
-
 Contains the default configuration for the ConfigHandler when you request an NPC's config that isn't already initialized.
 
 Recommended not to modify this file, instead use the ConfigHandler to create a preset before loading it.
+
+Developer History
+    > @crit-dev (@rman501), initial commit
+        o7 to future devs
 
 ]]--
 
@@ -18,6 +20,17 @@ Defaults.StopType = "CurrentPosition" -- Default stop type is CurrentPosition
 -- == Request Prioritization == --
 Defaults.RequestPrioritization.PreferTimeOverPriority.Enabled               = true -- if true, the AI will prioritize the latest request over a request with a higher priority
 Defaults.RequestPrioritization.PreferTimeOverPriority.ResetOlderRequests    = true -- if true, the AI will ignore older requests when a new request is made, even after the latest request is processed
+
+
+-- == Agent Info == --
+-- look at link below for in-depth explanation.
+-- resource link: https://create.roblox.com/docs/characters/pathfinding#create-paths:~:text=Default-,AgentRadius,-Agent%20radius%2C%20in
+Defaults.AgentInfo.AgentRadius      = 2.5
+Defaults.AgentInfo.AgentHeight      = 5
+Defaults.AgentInfo.AgentCanJump     = true
+Defaults.AgentInfo.AgentCanClimb    = false
+Defaults.AgentInfo.WaypointSpacing  = 4
+Defaults.AgentInfo.Costs            = {} -- {Water = 20, myPFLink = 10, etc...}
 
 
 -- == Visualization Configuration == --
@@ -35,6 +48,12 @@ Defaults.Visualization.TetherColor          = Color3.fromRGB(255, 255, 0) -- (YE
 Defaults.Tracking.Enabled                           = false -- Master control for tracking
 Defaults.Tracking.CollinearTargetPositionOffset     = 1 -- If set, the NPC will offset the target's position by this amount when calculating the path (only when using Moveto ops)
 Defaults.Tracking.PredictionMagnitude               = 1 -- If true, the NPC will predict the target's movement and adjust its path accordingly
+
+-- == Visualization Configuration == --
+Defaults.Debugging.Enabled = false -- Master control for debugging
+Defaults.Debugging.OutputToConsole = true
+Defaults.Debugging.StateTransitioning = true
+-- Defaults.Debugging.LogToScript = true -- prints all outputs from Forbidden AI to a file.
 
 return Defaults
 
