@@ -45,7 +45,8 @@ type MQ_Singleton = {
     ["ActiveConfig"]: AIT.Config,
     ["NewestStartRequest"]: StartRequest,
     ["NewestStopRequest"]: StopRequest,
-    ["ActiveRequest"]: StartRequest? | StopRequest?
+    ["ActiveRequest"]: StartRequest? | StopRequest?,
+    ["LastSuccessfulPath"]: {time: number, wps: {PathWaypoint}}?
 }
 
 type MQ = {
@@ -81,6 +82,7 @@ local function InitializeMQ(NPC: Instance)
             Priority = AIT.RequestPriority.ConvertPriorityToNumber("DefaultStop"), -- default priority
             ProcessingState = "Requested"
         },
+        LastSuccessfulPath = {time = os.clock(), wps = {}},
         ActiveRequest = nil,
         Processing = false
     }
@@ -101,9 +103,18 @@ end
 -- == API Functions == --
 
 
-API.GetRequest = function(NPC: Instance) -- TODO:// determine type stuff
+API.SetLastSuccessfulPath = function(NPC: Instance, Waypoints: {PathWaypoint})
+    if Waypoints == nil then warn("Waypoints table was nil!") end
+    Messages[NPC].LastSuccessfulPath = {time = os.clock(), wps = Waypoints}
 end
--- TODO:// both ? what should this func purpose be?
+
+API.GetLastSuccessfulPath = function(NPC: Instance, TimeoutSeconds: number): {PathWaypoint}? -- TODO:// determine type stuff
+    local LastPathInfo = Messages[NPC].LastSuccessfulPath
+    
+    if LastPathInfo.time + 1 < os.clock() then return nil end
+    
+    return LastPathInfo.wps
+end
 
 
 API.SetActiveRequest = function(NPC: Instance, Request: StartRequest | StopRequest)

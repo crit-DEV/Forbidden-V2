@@ -9,7 +9,8 @@ TODO://
 ]]--
 
 -- == Services == --
-local rs = game:GetService("ReplicatedStorage")
+local rs                    = game:GetService("ReplicatedStorage")
+local PathfindingService    = game:GetService("Pathfinding")
 
 
 -- == Libraries == --
@@ -19,19 +20,27 @@ local RBLXStateMachineLib = require(rs.Forbidden.Packages.robloxstatemachine)
 -- == Forbidden Modules & Architecture == --
 local ConfigHandler = require(script.Parent.ConfigHandler)
 local MessageQueue  = require(script.Parent.MessageQueue)
+local DirectMoveTo  = require(script.Parent.DirectMoveTo)
 
 
--- == Types == --
+-- == External Types == --
 local AIT = require(script.Parent.Types)
 
 
--- == Internal Functions
+-- == Internal Functions == --
 
 
 
 -- == Setup == --
 local API = {}
-local StateMachines: {[Instance]: "StateMachine"}
+local StateMachines: {[Instance]: {
+    Data: {
+            time: number,
+            Config: AIT.Config
+        }
+    }?
+} = {}
+local PathRBXConnections: {[Instance]: {Blocked: RBXScriptConnection?, Unblocked: RBXScriptConnection?, BlockedWaypointIndices: {number}}} = {}
 
 
 -- == API Functions == --
@@ -40,9 +49,7 @@ local function InitializeStateMachine(NPC: Instance)
 
     local thisStateMachine = RBLXStateMachineLib.new(
         "Idle", -- Initial State
-        RBLXStateMachineLib:LoadDirectory(
-            script.States, 
-            {"Idle", "Paused", "Paused", "Tracking"}), -- States to load
+        RBLXStateMachineLib:LoadDirectory(script.States),
         { -- data
             time = tick(), -- Sends the current tick
             Config = ConfigHandler.GetActiveConfig(NPC)
@@ -61,6 +68,71 @@ Computes a path with the current configuration settings for the NPC.
 
 @return <strong>{ PathWaypoint } A table of PathWaypoints to the destination.
 ]=]
-API.ComputePath = function(NPC: Instance, Target: any): {PathWaypoint}
+
+local function onPathBlocked(NPC: Instance, WaypointIndexNumber: number)
+    -- do stuff here.
+    if StateMachines[NPC].State.Name == "Idle" then return end -- not active path.
+end
+
+local function onPathUnblocked(NPC: Instance, WaypointIndexNumber: number)
+
+end
+
+local function DisconnectSignals(NPC: Instance)
     
+    -- Initialize
+    if not PathRBXConnections[NPC] then 
+        PathRBXConnections[NPC] = {Blocked = nil, Unblocked = nil, BlockedWaypointIndices = {}}
+        return
+    end
+
+    -- Disconnect and cleanup signals
+    PathRBXConnections[NPC].Blocked:Disconnect()
+    PathRBXConnections[NPC].Unblocked:Disconnect()
+    PathRBXConnections[NPC].Blocked = nil
+    PathRBXConnections[NPC].Unblocked = nil
+
+    -- Reset blocked wp indices
+    PathRBXConnections[NPC].BlockedWaypointIndices = {}
+
+end
+
+
+local function ConnectSignals(NPC: Instance, Path: Path)
+
+    -- Initialize (I do not believe this is necessary but it does not matter)
+    if not PathRBXConnections[NPC] then 
+        PathRBXConnections[NPC] = {Blocked = nil, Unblocked = nil, BlockedWaypointIndices = {}}
+        return
+    end
+
+    PathRBXConnections[NPC].Blocked     = Path.Blocked:Connect(function(wpi: number) onPathBlocked(NPC, wpi) end)
+    PathRBXConnections[NPC].Unblocked   = Path.Unblocked:Connect(function(wpi: number) onPathUnblocked(NPC, wpi) end)
+    PathRBXConnections[NPC].BlockedWaypointIndices = {} -- technically not necessary
+end
+
+-- local LastPathSuccesful: {[Instance]: boolean} = {} 
+API.ComputePath = function(NPC: Instance, Target: any): {PathWaypoint}?
+    
+    -- Get the !active! config for the NPC
+    local Config: AIT.Config = ConfigHandler.GetActiveConfig(NPC)
+
+
+    -- Direct move to stuff.
+    
+
+
+    -- Get the path
+    local Path: Path = PathfindingService:CreatePath(Config.AgentInfo)
+    
+
+
+
+    -- Disconnect current signals and destroy them
+    -- This should be done after a successful path compute.
+    DisconnectSignals(NPC)
+    ConnectSignals(NPC, Path)
+
+    -- default, no path
+    return nil
 end

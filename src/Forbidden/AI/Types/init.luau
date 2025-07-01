@@ -20,6 +20,8 @@ export type ProcessingState = "Requested" | "Processing" | "Processed"
 
 export type RequestPriority = TRequestPriority.RequestPriority
 
+export type AgentInfo = TConfig.AgentInfo
+
 -- enums
 return {
     -- StopType = StopTypes,

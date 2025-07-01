@@ -1,4 +1,4 @@
--- All Types have a T Prefix
+-- All Type Files have a T Prefix
 -- Makes it easier to identify types in the codebase
 -- Makes it so that its easier to locate windows in the codebase
 
@@ -17,7 +17,18 @@ export type Config = {
     AgentInfo: AgentInfo,
     RequestPrioritization: RequestPrioritization, -- if true, the AI will ignore the stop operation and continue moving to the next target
     ResetOlderRequests: boolean, -- if true, the AI will ignore older requests when a new request is made
-    Tracking: Tracking
+    Tracking: Tracking,
+    DirectMoveTo: DirectMoveTo
+}
+
+
+type DirectMoveTo = {
+    ActivationDistance: number,
+    DoRaycast: boolean,
+    JumpHandler: boolean,
+    TrackingOnly: boolean,
+    HeightLimit: number, -- if it exceeds this height limit, it will not use DirectMoveTo
+    AvoidUseHook: () -> boolean -- if this returns true, DirectMoveTo will not be used.
 }
 
 
@@ -49,7 +60,7 @@ type Debugging {
     -- LogToScript: boolean
 }
 
-type AgentInfo = {
+export type AgentInfo = {
     AgentRadius: number,
     AgentHeight: number,
     AgentCanJump: boolean,

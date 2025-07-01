@@ -91,7 +91,7 @@ API.Teleport = function(playerOrCharacter, destination: any, yOffset: number)
 	return true
 end
 
--- @Deprecated
+---@deprecated
 -- if you do, (Yields = false), it returns the track so you can stop it.
 API.Animate = function(NPC: Model, AnimId: number, Yields: boolean)
 	

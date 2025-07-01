@@ -11,7 +11,9 @@ Developer History
 
 local AIT = require(script.Parent.Parent.Types)
 
+-- == Setup == --
 local Defaults: AIT.Config = {} :: any
+local function nullbind() end
 
 -- == Stop Configuration == --
 Defaults.StopType = "CurrentPosition" -- Default stop type is CurrentPosition
@@ -49,6 +51,13 @@ Defaults.Tracking.Enabled                           = false -- Master control fo
 Defaults.Tracking.CollinearTargetPositionOffset     = 1 -- If set, the NPC will offset the target's position by this amount when calculating the path (only when using Moveto ops)
 Defaults.Tracking.PredictionMagnitude               = 1 -- If true, the NPC will predict the target's movement and adjust its path accordingly
 
+-- == Direct MoveTo Configuration == --
+Defaults.DirectMoveTo.ActivationDistance    = 20    -- If the distance between the NPC & Target is less than this setting, it will be possible to use DirectMoveTo.
+Defaults.DirectMoveTo.HeightLimit           = 5     -- If the difference between the Y position of the NPC & Target is less than this setting, it will be possible to use DirectMoveTo
+Defaults.DirectMoveTo.JumpHandler           = true  -- Allows Forbidden to make use of the JumpHandler when using DirectMoveTo
+Defaults.DirectMoveTo.DoRaycast             = true  -- Enables raycasting that must return a positive result ot use the DirectMoveTo method.
+Defaults.DirectMoveTo.TrackingOnly          = true
+Defaults.DirectMoveTo.AvoidUseHook          = nullbind  -- Allows the user to add a custom function which is called every time DirectMoveTo could potentially be used, if a value of TRUE is returned, the system will NOT use DirectMoveTo.
 -- == Visualization Configuration == --
 Defaults.Debugging.Enabled = false -- Master control for debugging
 Defaults.Debugging.OutputToConsole = true
