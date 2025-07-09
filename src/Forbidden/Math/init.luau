@@ -20,7 +20,7 @@ export type RaycastSettings = {
 	OutputCollision: boolean
 }
 
-API.LineOfSight = function(Object1: Instance, Object2: Instance, raycastSettings: RaycastSettings, ERROROVERRIDE: boolean): any
+API.LineOfSight = function(Object1: Instance, Object2: Instance, raycastSettings: RaycastSettings, ERROROVERRIDE: boolean?): any
 
 	if Object1 == nil then warn("Object1 was nil!"); return false end
 	if Object2 == nil then warn("Object2 was nil!"); return false end

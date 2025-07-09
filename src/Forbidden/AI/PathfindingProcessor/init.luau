@@ -18,13 +18,15 @@ local RBLXStateMachineLib = require(rs.Forbidden.Packages.robloxstatemachine)
 
 
 -- == Forbidden Modules & Architecture == --
-local ConfigHandler = require(script.Parent.ConfigHandler)
-local MessageQueue  = require(script.Parent.MessageQueue)
-local DirectMoveTo  = require(script.Parent.DirectMoveTo)
+local root          = script.Parent.Parent
+local ConfigHandler = require(root.AI.ConfigHandler)
+local MessageQueue  = require(root.AI.MessageQueue)
+local DirectMoveTo  = require(root.AI.DirectMoveTo)
+local MathModule    = require(root.Math)
 
 
 -- == External Types == --
-local AIT = require(script.Parent.Types)
+local AIT = require(root.AI.Types)
 
 
 -- == Internal Functions == --
@@ -119,13 +121,12 @@ API.ComputePath = function(NPC: Instance, Target: any): {PathWaypoint}?
 
 
     -- Direct move to stuff.
-    
+    DirectMoveTo.
 
 
     -- Get the path
     local Path: Path = PathfindingService:CreatePath(Config.AgentInfo)
     
-
 
 
     -- Disconnect current signals and destroy them

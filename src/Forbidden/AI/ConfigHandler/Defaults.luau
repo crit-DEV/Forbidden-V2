@@ -52,12 +52,22 @@ Defaults.Tracking.CollinearTargetPositionOffset     = 1 -- If set, the NPC will 
 Defaults.Tracking.PredictionMagnitude               = 1 -- If true, the NPC will predict the target's movement and adjust its path accordingly
 
 -- == Direct MoveTo Configuration == --
+Defaults.DirectMoveTo.Enabled               = true
 Defaults.DirectMoveTo.ActivationDistance    = 20    -- If the distance between the NPC & Target is less than this setting, it will be possible to use DirectMoveTo.
 Defaults.DirectMoveTo.HeightLimit           = 5     -- If the difference between the Y position of the NPC & Target is less than this setting, it will be possible to use DirectMoveTo
 Defaults.DirectMoveTo.JumpHandler           = true  -- Allows Forbidden to make use of the JumpHandler when using DirectMoveTo
 Defaults.DirectMoveTo.DoRaycast             = true  -- Enables raycasting that must return a positive result ot use the DirectMoveTo method.
 Defaults.DirectMoveTo.TrackingOnly          = true
 Defaults.DirectMoveTo.AvoidUseHook          = nullbind  -- Allows the user to add a custom function which is called every time DirectMoveTo could potentially be used, if a value of TRUE is returned, the system will NOT use DirectMoveTo.
+
+-- == Direct MoveTo -> Checking Floor Config == --
+Defaults.DirectMoveTo.CheckFloor.Enabled                    = true -- Before attempting a move to, it will check for voids in the floor.
+Defaults.DirectMoveTo.CheckFloor.FailHeight                 = Defaults.DirectMoveTo.HeightLimit + Defaults.AgentInfo.AgentHeight / 2 -- If the distance from the raycast to the ground is this (or more), then it is considered a fail.
+Defaults.DirectMoveTo.CheckFloor.RaycastSpacing             = 5 -- How spaced out should the raycast be to the target.
+Defaults.DirectMoveTo.CheckFloor.AlwaysRaycastThisDistance  = 2 -- What distance should always be raycasted (in studs away from the NPC)
+Defaults.DirectMoveTo.CheckFloor.CheckFrequencyTimer        = 1 -- How often should the checks be done? (if possible)
+Defaults.DirectMoveTo.CheckFloor.BlockDirectMoveToTimer     = 3 -- How long should an attempt to do another DirectMoveTo call be blocked for.
+
 -- == Visualization Configuration == --
 Defaults.Debugging.Enabled = false -- Master control for debugging
 Defaults.Debugging.OutputToConsole = true

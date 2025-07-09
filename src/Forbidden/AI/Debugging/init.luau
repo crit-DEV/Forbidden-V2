@@ -45,7 +45,7 @@ API.Log = function(NPC, ...)
 
         local temp = nil
         local cbt_exists = ConversionByType[val_type]
-        if cbt_exists then temp = cbt_exists() end 
+        if cbt_exists ~= nil then temp = cbt_exists() end 
     
         if temp then this_val_msg = temp end
         if not temp then this_val_msg = tostring(v) end
@@ -54,6 +54,22 @@ API.Log = function(NPC, ...)
     end
 
     print(msg)
+end
+
+-- Saw this in a python function on a short, seemed really cool.
+API.TimeIt = function(name: string, callback: () -> ())
+    local startTime = os.clock()
+    local success, result = pcall(callback)
+    local endTime = os.clock()
+    local elapsed = endTime - startTime
+
+    if success then
+        print(string.format(name .. " | Elapsed time: %.6f seconds", elapsed))
+    else
+        warn(string.format(name .. " | Callback failed after %.6f seconds: %s", elapsed, result))
+    end
+
+    return elapsed, success, result
 end
 
 return API

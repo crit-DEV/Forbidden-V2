@@ -28,7 +28,7 @@ local DefaultAntilag = script.antilag
 
 local API = {}
 
-API.SmartPathfind = function(NPC: Model, Target: any, Yields: boolean?, Priority: RequestPriority? | number?)
+API.SmartPathfind = function(NPC: Instance, Target: any, Yields: boolean?, Priority: RequestPriority? | number?)
     MessageQueue.SendStartMessage(NPC, Target, Yields, Priority)
 end
 
@@ -63,7 +63,7 @@ end
 
     @param NPC <strong>Model</strong> The NPC to stop.
 ]=]
-API.Stop = function(NPC: Model, Yields: boolean?, Priority: RequestPriority? | number?)
+API.Stop = function(NPC: Instance, Yields: boolean?, Priority: RequestPriority? | number?)
     MessageQueue.SendStopMessage(NPC, Yields, Priority)
 end
 
@@ -97,7 +97,7 @@ end
 
     @param NPC <strong>Model</strong> The NPC to obtain the config of.
 ]=]
-API.GetConfig = function(NPC: Model): Config
+API.GetConfig = function(NPC: Instance): Config
     return ConfigHandler.GetConfig(NPC)
 end
 
@@ -127,7 +127,7 @@ end
     @param UseExtremeCase <strong>boolean?</strong> A loop-based system of the anti-lag, aims to prevent network owner from switching in extreme-cases.
     @param IgnoreHumanoidCheck <strong>boolean?</strong> Whether or not to ignore the check for a humanoid (call validity reasons)
 ]=]
-API.InsertAntiLag = function(NPC: Model, UseExtremeCase: boolean?, IgnoreHumanoidCheck: boolean?)
+API.InsertAntiLag = function(NPC: Instance, UseExtremeCase: boolean?, IgnoreHumanoidCheck: boolean?)
     
     -- Validity Checks
     if NPC == nil then error("NPC is nil! Cannot insert the anti-lag script.") end

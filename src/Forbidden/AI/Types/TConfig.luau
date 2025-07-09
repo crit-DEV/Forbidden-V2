@@ -23,12 +23,23 @@ export type Config = {
 
 
 type DirectMoveTo = {
+    Enabled: boolean,
     ActivationDistance: number,
     DoRaycast: boolean,
     JumpHandler: boolean,
+    CheckFloor: CheckFloor,
     TrackingOnly: boolean,
     HeightLimit: number, -- if it exceeds this height limit, it will not use DirectMoveTo
     AvoidUseHook: () -> boolean -- if this returns true, DirectMoveTo will not be used.
+}
+
+type CheckFloor = {
+    Enabled: boolean,
+    BlockDirectMoveToTimer: number, -- if the floor is missing, block another attempt for `x` seconds.
+    CheckFrequencyTimer: number,
+    RaycastSpacing: number,
+    AlwaysRaycastThisDistance: number,
+    FailHeight: number
 }
 
 
@@ -53,7 +64,7 @@ type Visualization = {
     TetherColor: Color3
 }
 
-type Debugging {
+type Debugging = {
     Enabled: boolean,
     StateTransitioning: boolean,
     OutputToConsole: boolean,
