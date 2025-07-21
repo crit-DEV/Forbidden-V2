@@ -7,8 +7,6 @@ Developer History
 
 -- == Services == --
 local rs                    = game:GetService("ReplicatedStorage")
-local PathfindingService    = game:GetService("Pathfinding")
-
 
 -- == Libraries == --
 local RBLXStateMachineLib = require(rs.Forbidden.Packages.robloxstatemachine)

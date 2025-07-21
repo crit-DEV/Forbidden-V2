@@ -10,7 +10,8 @@ TODO://
 
 -- == Services == --
 local rs                    = game:GetService("ReplicatedStorage")
-local PathfindingService    = game:GetService("Pathfinding")
+local PathfindingService    = game:GetService("PathfindingService")
+local debris                = game:GetService("Debris")
 
 
 -- == Libraries == --
@@ -23,6 +24,8 @@ local ConfigHandler = require(root.AI.ConfigHandler)
 local MessageQueue  = require(root.AI.MessageQueue)
 local DirectMoveTo  = require(root.AI.DirectMoveTo)
 local MathModule    = require(root.Math)
+local Common        = require(root.Common)
+local ForbiddenDebugging = require(root.AI.Debugging)
 
 
 -- == External Types == --
@@ -35,15 +38,19 @@ local AIT = require(root.AI.Types)
 
 -- == Setup == --
 local API = {}
-local StateMachines: {[Instance]: {
-    Data: {
-            time: number,
-            Config: AIT.Config
+local StateMachines: {
+    [Instance]: {
+        State: {
+            Data: {
+                time: number,
+                Config: AIT.Config
+            },
+            Name: string
         }
-    }?
+    }
 } = {}
-local PathRBXConnections: {[Instance]: {Blocked: RBXScriptConnection?, Unblocked: RBXScriptConnection?, BlockedWaypointIndices: {number}}} = {}
-
+local BlockedIndices: {[Instance]: {number}} = {}
+local Paths: {[Instance]: {AgentInfo: AIT.AgentInfo, PathObject: Path, UsingPathfind: boolean}} = {}
 
 -- == API Functions == --
 local function InitializeStateMachine(NPC: Instance)
@@ -53,8 +60,12 @@ local function InitializeStateMachine(NPC: Instance)
         "Idle", -- Initial State
         RBLXStateMachineLib:LoadDirectory(script.States),
         { -- data
-            time = tick(), -- Sends the current tick
-            Config = ConfigHandler.GetActiveConfig(NPC)
+            -- time = tick(), -- Sends the current tick
+            Config = ConfigHandler.GetActiveConfig(NPC),
+            Target = nil,
+            Waypoints = {},
+            LastTrackingRecall = 0,
+            RecallType = "DirectMoveTo"
         }
     )
 
@@ -73,44 +84,50 @@ Computes a path with the current configuration settings for the NPC.
 
 local function onPathBlocked(NPC: Instance, WaypointIndexNumber: number)
     -- do stuff here.
+    if StateMachines[NPC] == nil then return end
     if StateMachines[NPC].State.Name == "Idle" then return end -- not active path.
 end
 
 local function onPathUnblocked(NPC: Instance, WaypointIndexNumber: number)
-
+    if StateMachines[NPC] == nil then return end
+    if StateMachines[NPC].State.Name == "Idle" then return end -- not active path.
 end
 
-local function DisconnectSignals(NPC: Instance)
+
+local function ConfigurePath(NPC: Instance, Path: Path)
+    Paths[NPC].UsingPathfind = true
+    BlockedIndices[NPC] = {}
+end
+
+local function TablesAreEqual(Table1: {any}, Table2: {any}): boolean
+    if #Table1 ~= #Table2 then return false end
+    for i, v in pairs(Table1) do
+        local Val1isTbl = typeof(v) == "table"
+        local Val2isTbl = Table2[i] == "table"
+        if (Val1isTbl and not Val2isTbl) or (Val2isTbl and not Val1isTbl) then return false end
+        if Val1isTbl and Val2isTbl then if not TablesAreEqual(v, Table2[i]) then return false end end
+        if v ~= Table2[i] then return false end
+    end
+    return true 
+end
+
+local function GetPath(NPC: Instance): Path
+    -- Get the !active! config for the NPC
+    local Config: AIT.Config = ConfigHandler.GetActiveConfig(NPC)
+    if not Paths[NPC] then return PathfindingService:CreatePath(Config.AgentInfo) end
     
-    -- Initialize
-    if not PathRBXConnections[NPC] then 
-        PathRBXConnections[NPC] = {Blocked = nil, Unblocked = nil, BlockedWaypointIndices = {}}
-        return
+    if TablesAreEqual(Paths[NPC].AgentInfo, Config.AgentInfo) then return Paths[NPC].PathObject end
+
+    local path = PathfindingService:CreatePath(Config.AgentInfo)
+    path.Blocked:Connect(function(wpi: number) onPathBlocked(NPC, wpi) end)
+    path.Unblocked:Connect(function(wpi: number) onPathUnblocked(NPC, wpi) end)
+    if Paths[NPC].PathObject then
+        debris:AddItem(Paths[NPC].PathObject, 0)
     end
+    Paths[NPC].AgentInfo = Config.AgentInfo
+    Paths[NPC].PathObject = path
 
-    -- Disconnect and cleanup signals
-    PathRBXConnections[NPC].Blocked:Disconnect()
-    PathRBXConnections[NPC].Unblocked:Disconnect()
-    PathRBXConnections[NPC].Blocked = nil
-    PathRBXConnections[NPC].Unblocked = nil
-
-    -- Reset blocked wp indices
-    PathRBXConnections[NPC].BlockedWaypointIndices = {}
-
-end
-
-
-local function ConnectSignals(NPC: Instance, Path: Path)
-
-    -- Initialize (I do not believe this is necessary but it does not matter)
-    if not PathRBXConnections[NPC] then 
-        PathRBXConnections[NPC] = {Blocked = nil, Unblocked = nil, BlockedWaypointIndices = {}}
-        return
-    end
-
-    PathRBXConnections[NPC].Blocked     = Path.Blocked:Connect(function(wpi: number) onPathBlocked(NPC, wpi) end)
-    PathRBXConnections[NPC].Unblocked   = Path.Unblocked:Connect(function(wpi: number) onPathUnblocked(NPC, wpi) end)
-    PathRBXConnections[NPC].BlockedWaypointIndices = {} -- technically not necessary
+    return path
 end
 
 -- local LastPathSuccesful: {[Instance]: boolean} = {} 
@@ -119,21 +136,34 @@ API.ComputePath = function(NPC: Instance, Target: any): {PathWaypoint}?
     -- Get the !active! config for the NPC
     local Config: AIT.Config = ConfigHandler.GetActiveConfig(NPC)
 
+    local TargetActual = Common.GetBasePart(Target, true, NPC)
+    if TargetActual == nil then error("Could not convert Target into an Actual Instance") end
+
 
     -- Direct move to stuff.
-    DirectMoveTo.
-
+    if DirectMoveTo.CanUseDirectMoveTo(NPC, Target) then
+        Paths[NPC].UsingPathfind = false
+        return {PathWaypoint.new(TargetActual.CFrame.Position, Enum.PathWaypointAction.Walk)}
+    end
 
     -- Get the path
-    local Path: Path = PathfindingService:CreatePath(Config.AgentInfo)
-    
-
-
-    -- Disconnect current signals and destroy them
-    -- This should be done after a successful path compute.
-    DisconnectSignals(NPC)
-    ConnectSignals(NPC, Path)
+    local Path: Path = GetPath(NPC)
+    ConfigurePath(NPC, Path)
 
     -- default, no path
     return nil
 end
+
+
+-- TEMP
+API.RawCompute = function(Origin: Vector3, Destination: Vector3, AgentInfo: AIT.AgentInfo): {PathWaypoint}?
+    local path: Path = PathfindingService:CreatePath(AgentInfo)
+    path:ComputeAsync(Origin, Destination)
+    if path.Status == Enum.PathStatus.Success then
+        return path:GetWaypoints()
+    else
+        return nil
+    end
+end
+
+return API

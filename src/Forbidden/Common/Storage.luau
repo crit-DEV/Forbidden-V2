@@ -36,7 +36,13 @@ end
 
 local fbdn_workspace_storage_temp = nil
 API.GetForbiddenStorageFolder = function(): Folder
-    fbdn_workspace_storage_temp 
+    if fbdn_workspace_storage_temp ~= nil then return fbdn_workspace_storage_temp end
+
+    fbdn_workspace_storage_temp           = Instance.new("Folder")
+    fbdn_workspace_storage_temp.Name      = "ForbiddenStorageFolder"
+    fbdn_workspace_storage_temp.Parent    = workspace
+
+    return fbdn_workspace_storage_temp
 end
 
 return API

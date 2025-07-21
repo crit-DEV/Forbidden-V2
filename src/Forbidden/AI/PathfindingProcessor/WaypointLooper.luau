@@ -1,0 +1,117 @@
+--[[ 7/20/25
+Developer History
+    > @crit-dev (@rman501), initial commit
+        o7 to future devs
+]]--
+
+-- == Services == --
+local run = game:GetService("RunService")
+
+
+-- == References == --
+local ForbiddenDir = script.Parent.Parent.Parent
+
+
+-- == Forbidden Types == --
+local AIT                   = require(ForbiddenDir.AI.Types)
+
+
+-- == Forbidden Modules & Architecture == --
+local ConfigHandler         = require(ForbiddenDir.AI.ConfigHandler)
+
+
+-- == Initialization == --
+local API = {}
+local ActiveContinuities: {[Instance]: {
+    RequestId: number, 
+    Target: any, 
+    index: number, 
+    waypoints: {PathWaypoint},
+    CompletedSignal: () -> ()
+}} = {}
+
+local function isValid(NPC: Instance): boolean
+    local NPCHuman = NPC:FindFirstAncestorOfClass("Humanoid")
+    if NPCHuman == nil then return false end
+    if NPCHuman.Health == 0 then return false end
+end
+
+local function LoopThroughWaypoints(NPC: Instance)
+    
+    local NPCHuman = NPC:FindFirstAncestorOfClass("Humanoid")
+    if NPCHuman == nil then error("nil human") end
+
+    local config: AIT.Config = ConfigHandler.GetActiveConfig(NPC)
+
+    local thisCont = ActiveContinuities[NPC]
+    
+    local thisId = thisCont.RequestId
+    local theseWaypoints = thisCont.waypoints
+    local thisWaypointCount = #theseWaypoints
+    local thisCompletedSignal = thisCont.CompletedSignal
+
+    for i=1, thisWaypointCount, 1 do
+
+        -- Verify this is the most recent request & it is not stopped
+        if thisId ~= thisCont.RequestId then break end
+
+        -- Verify the NPC is valid
+        if not isValid(NPC) then break end
+
+        -- Verify waypoint
+        local wp = theseWaypoints[i]
+        if not wp then break end
+
+        -- If it is a pathfinding link (code after the if statement is skipped if so)
+        if wp.Action == Enum.PathWaypointAction.Custom then
+            task.spawn(config.Hooks.MovingToWaypoint, NPC, wp, "PathfindingLink")
+            local PathfindingLinkResult = config.Hooks.PathfindingLinkReached(NPC, wp)
+            if PathfindingLinkResult then continue end
+            error("The PathfindingLinkReached returned false or nil, meaning it was unsuccessful for the Label: " .. wp.Label)
+        end
+
+        -- If it is a jump waypoint
+        if wp.Action == Enum.PathWaypointAction.Jump then NPCHuman.Jump = true end
+
+        -- Move to the waypoint position
+        NPCHuman:MoveTo(wp.Position)
+        task.spawn(config.Hooks.MovingToWaypoint, NPC, wp, "Pathing")
+        NPCHuman.MoveToFinished:Wait()
+    end
+
+    if thisId == thisCont.RequestId then
+        thisCompletedSignal() -- if same request, call the completed signal (used for transition back to Idle)
+        API.EndContinuity(NPC)
+        config.Hooks.GoalReached(NPC, thisCont.Target) -- not necessary to spawn this (at end of an async func) (keep in mind)
+    end
+
+end
+
+API.StartContinuity = function(NPC: Instance, Target: any, WPs: {PathWaypoint}, CompletedSignal: () -> ())
+    if not ActiveContinuities[NPC] then
+        ActiveContinuities[NPC] = {RequestId = 0, Target = nil, index = 1, waypoints = {}, CompletedSignal = function() end}
+    end
+
+    
+    local thisCont = ActiveContinuities[NPC]
+
+    thisCont.RequestId = ActiveContinuities[NPC].RequestId + 1
+    thisCont.Target = Target
+    thisCont.index = 1 -- Start at the first waypoint
+    thisCont.waypoints = WPs
+    thisCont.CompletedSignal = CompletedSignal
+
+    task.spawn(LoopThroughWaypoints, NPC)
+end
+
+API.EndContinuity = function(NPC: Instance)
+    local thisCont = ActiveContinuities[NPC]
+
+    thisCont.RequestId = ActiveContinuities[NPC].RequestId + 1
+    thisCont.Target = nil
+    thisCont.index = 1 -- Start at the first waypoint
+    thisCont.waypoints = {}
+    thisCont.CompletedSignal = function() end
+end
+
+return API

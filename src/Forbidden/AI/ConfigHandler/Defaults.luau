@@ -15,11 +15,22 @@ local AIT = require(script.Parent.Parent.Types)
 local Defaults: AIT.Config = {} :: any
 local function nullbind() end
 
+
+-- == References == --
+local root = script.Parent.Parent.Parent
+
+
+-- == Libraries == --
+local Common = require(root.Common)
+
+
 -- == Stop Configuration == --
 Defaults.StopType = "CurrentPosition" -- Default stop type is CurrentPosition
 
 
 -- == Request Prioritization == --
+Defaults.RequestPrioritization = {} :: any
+Defaults.RequestPrioritization.PreferTimeOverPriority = {} :: any
 Defaults.RequestPrioritization.PreferTimeOverPriority.Enabled               = true -- if true, the AI will prioritize the latest request over a request with a higher priority
 Defaults.RequestPrioritization.PreferTimeOverPriority.ResetOlderRequests    = true -- if true, the AI will ignore older requests when a new request is made, even after the latest request is processed
 
@@ -27,6 +38,7 @@ Defaults.RequestPrioritization.PreferTimeOverPriority.ResetOlderRequests    = tr
 -- == Agent Info == --
 -- look at link below for in-depth explanation.
 -- resource link: https://create.roblox.com/docs/characters/pathfinding#create-paths:~:text=Default-,AgentRadius,-Agent%20radius%2C%20in
+Defaults.AgentInfo = {} :: any
 Defaults.AgentInfo.AgentRadius      = 2.5
 Defaults.AgentInfo.AgentHeight      = 5
 Defaults.AgentInfo.AgentCanJump     = true
@@ -36,6 +48,7 @@ Defaults.AgentInfo.Costs            = {} -- {Water = 20, myPFLink = 10, etc...}
 
 
 -- == Visualization Configuration == --
+Defaults.Visualization = {} :: any
 Defaults.Visualization.Enabled              = false -- Master control for visualization
 Defaults.Visualization.Path                 = true -- Show the path the NPC will take
 Defaults.Visualization.PathColor            = Color3.fromRGB(255, 0, 0) -- (RED) Color of the path visualization
@@ -47,11 +60,42 @@ Defaults.Visualization.Tether               = false -- Show the tether between t
 Defaults.Visualization.TetherColor          = Color3.fromRGB(255, 255, 0) -- (YELLOW) Color of the tether visualization
 
 -- == Tracking Configuration == --
+Defaults.Tracking = {} :: any
 Defaults.Tracking.Enabled                           = false -- Master control for tracking
 Defaults.Tracking.CollinearTargetPositionOffset     = 1 -- If set, the NPC will offset the target's position by this amount when calculating the path (only when using Moveto ops)
 Defaults.Tracking.PredictionMagnitude               = 1 -- If true, the NPC will predict the target's movement and adjust its path accordingly
 
+-- == Dynamic Retrack Configuration == --
+Defaults.Tracking.DynamicRetrack = {} :: any
+
+
+Defaults.Tracking.DynamicRetrack.MoveTo = {} :: any
+Defaults.Tracking.DynamicRetrack.MoveTo.MinTimer = 0 -- minimum retrack time if last op was a DirectMoveTo
+Defaults.Tracking.DynamicRetrack.MoveTo.MaxTimer = 2 -- maximum retrack time if last op was a DirectMoveTo
+Defaults.Tracking.DynamicRetrack.MoveTo.GetRetrackTimeFunction = function(NPC: Instance, Target: Instance): number
+    return math.min(
+        Defaults.Tracking.DynamicRetrack.MoveTo.MinTimer + 0.5 * Common.GetDistanceFromNPCToInstance(NPC, Target) / 10, 
+        Defaults.Tracking.DynamicRetrack.MoveTo.MaxTimer
+    )
+end
+
+Defaults.Tracking.DynamicRetrack.Pathfind = {} :: any
+Defaults.Tracking.DynamicRetrack.Pathfind.MinTimer = 1 -- minimum retrack time if last op was a pathfind
+Defaults.Tracking.DynamicRetrack.Pathfind.MaxTimer = 5 -- maximum retrack time if last op was a pathfind
+Defaults.Tracking.DynamicRetrack.Pathfind.GetRetrackTimeFunction = function(NPC: Instance, Target: Instance): number
+    return math.min(
+        Defaults.Tracking.DynamicRetrack.Pathfind.MinTimer + 1 * Common.GetDistanceFromNPCToInstance(NPC, Target) / 10, 
+        Defaults.Tracking.DynamicRetrack.Pathfind.MaxTimer
+    )
+end
+    -- it should be noted, this function does not change even if a new cfg is used and the values are changed.
+    -- the function must be replaced.
+    -- this is as we cannot use a cyclic dependency to the ConfigHandler file
+    -- if someone wants to fix they can.
+
+    
 -- == Direct MoveTo Configuration == --
+Defaults.DirectMoveTo = {} :: any
 Defaults.DirectMoveTo.Enabled               = true
 Defaults.DirectMoveTo.ActivationDistance    = 20    -- If the distance between the NPC & Target is less than this setting, it will be possible to use DirectMoveTo.
 Defaults.DirectMoveTo.HeightLimit           = 5     -- If the difference between the Y position of the NPC & Target is less than this setting, it will be possible to use DirectMoveTo
@@ -61,6 +105,7 @@ Defaults.DirectMoveTo.TrackingOnly          = true
 Defaults.DirectMoveTo.AvoidUseHook          = nullbind  -- Allows the user to add a custom function which is called every time DirectMoveTo could potentially be used, if a value of TRUE is returned, the system will NOT use DirectMoveTo.
 
 -- == Direct MoveTo -> Checking Floor Config == --
+Defaults.DirectMoveTo.CheckFloor = {} :: any
 Defaults.DirectMoveTo.CheckFloor.Enabled                    = true -- Before attempting a move to, it will check for voids in the floor.
 Defaults.DirectMoveTo.CheckFloor.FailHeight                 = Defaults.DirectMoveTo.HeightLimit + Defaults.AgentInfo.AgentHeight / 2 -- If the distance from the raycast to the ground is this (or more), then it is considered a fail.
 Defaults.DirectMoveTo.CheckFloor.RaycastSpacing             = 5 -- How spaced out should the raycast be to the target.
@@ -68,7 +113,41 @@ Defaults.DirectMoveTo.CheckFloor.AlwaysRaycastThisDistance  = 2 -- What distance
 Defaults.DirectMoveTo.CheckFloor.CheckFrequencyTimer        = 1 -- How often should the checks be done? (if possible)
 Defaults.DirectMoveTo.CheckFloor.BlockDirectMoveToTimer     = 3 -- How long should an attempt to do another DirectMoveTo call be blocked for.
 
+
+-- == Hooks Configuration == --
+Defaults.Hooks = {} :: any
+Defaults.Hooks.PathfindingLinkReached = function(NPC: Instance, Waypoint: PathWaypoint): boolean
+    local NPCActual = Common.GetBasePart(NPC)
+    if NPCActual then
+        NPCActual.CFrame = CFrame.new(Waypoint.Position)
+    end
+
+    return true
+end
+Defaults.Hooks.MovingToWaypoint = nullbind
+Defaults.Hooks.Stuck = function(NPC: Instance, Target: any): boolean
+    -- 9/3/24 @rman501, forgot to add position of the NPC causing AI to go to ~0,0,0
+	local NPCHuman = NPC:FindFirstChildOfClass("Humanoid")
+    if NPCHuman == nil then return false end
+    if NPCHuman.Health == 0 then return false end
+
+	
+	local NPCActual = Common.GetBasePart(NPC)
+	if NPCActual == nil then return false end
+
+	local pos = NPCActual.CFrame.Position
+	NPCHuman:MoveTo(Vector3.new(math.random(-3,3) + pos.X, pos.Y, math.random(-3,3) + pos.Z)) -- 9/30/24 @rman501, stuck fix, pos wasnt added.
+	NPCHuman.Jump = true
+    
+    return true
+end
+Defaults.Hooks.GoalReached = nullbind
+Defaults.Hooks.StartAcknowledged = nullbind
+Defaults.Hooks.StopAcknowledged = nullbind
+
+
 -- == Visualization Configuration == --
+Defaults.Debugging = {} :: any
 Defaults.Debugging.Enabled = false -- Master control for debugging
 Defaults.Debugging.OutputToConsole = true
 Defaults.Debugging.StateTransitioning = true

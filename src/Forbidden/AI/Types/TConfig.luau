@@ -18,7 +18,17 @@ export type Config = {
     RequestPrioritization: RequestPrioritization, -- if true, the AI will ignore the stop operation and continue moving to the next target
     ResetOlderRequests: boolean, -- if true, the AI will ignore older requests when a new request is made
     Tracking: Tracking,
-    DirectMoveTo: DirectMoveTo
+    DirectMoveTo: DirectMoveTo,
+    Hooks: Hooks
+}
+
+type Hooks = {
+    PathfindingLinkReached: (NPC: Instance, Waypoint: PathWaypoint) -> (boolean),
+    MovingToWaypoint: (NPC: Instance, Waypoint: PathWaypoint, MoveType: "DirectMoveTo" | "Pathing" | "PathfindingLink") -> (),
+    Stuck: (NPC: Instance, Target: Instance) -> (boolean),
+    GoalReached: (NPC: Instance, Target: any) -> (),
+    StopAcknowledged: (NPC: Instance, Target: any) -> (),
+    StartAcknowledged: (NPC: Instance, Target: any) -> ()
 }
 
 
@@ -84,6 +94,16 @@ type Tracking = {
     Enabled: boolean, -- Master control for tracking
     PredictionMagnitude: number, -- The amount of studs ahead the NPC predicts the target's movement (in direction of the target's movement)
     CollinearTargetPositionOffset: number, -- If set, the NPC will offset the target's position by this amount when calculating the path 
+    DynamicRetrack: {
+        MoveTo: BaseDynamicRetrackTimerConfig,
+        Pathfind: BaseDynamicRetrackTimerConfig
+    }
+}
+
+type BaseDynamicRetrackTimerConfig = {
+    MinTimer: number,
+    MaxTimer: number,
+    GetRetrackTimeFunction: (NPC: Instance, Target: Instance) -> (number)
 }
 
 return {}

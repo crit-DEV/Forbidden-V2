@@ -9,9 +9,11 @@ Developer History
 
 
 -- == Forbidden Modules & Architecture == --
-local ConfigHandler = require(script.Parent.ConfigHandler)
-local Common        = require(script.Parent.Parent.Common)
-local MathModule    = require(script.Parent.Parent.Math)
+local root = script.Parent.Parent
+local ConfigHandler = require(root.AI.ConfigHandler)
+local Common        = require(root.Common)
+local MathModule    = require(root.Math)
+local CMathRequests = require(root.AI.CommonMathRequests)
 
 
 -- == External Types == --
@@ -23,19 +25,21 @@ local API = {}
 -- target has to be instance at this point.
 -- which means computing fake point elsewhere.
 -- needs to be fore raycast.
-API.DoDirectMoveTo = function(NPC: Instance, Target: Instance): boolean
+API.CanUseDirectMoveTo = function(NPC: Instance, Target: Instance): boolean
 
     -- If not an instance, then it is a position, which means it is non-tracking, which means we do not need this setting.
     if typeof(Target) ~= "Instance" then return false end
 
     local Config: AIT.Config = ConfigHandler.GetActiveConfig(NPC)
+
+    if Config.DirectMoveTo.TrackingOnly and not Config.Tracking.Enabled then return false end
     -- if not Config.Tracking.Enabled then return false end     -- maybe use this if path does not compute ?
         -- either way it would not be here.
 
 
     local npc_part: BasePart? = Common.GetBasePart(Target)
     if npc_part == nil then error("NO NPC BASE") end
-
+    
     local target_part: BasePart? = Common.GetBasePart(Target, true, NPC)
     if target_part == nil then error("NO NPC BASE") end
 
@@ -50,13 +54,11 @@ API.DoDirectMoveTo = function(NPC: Instance, Target: Instance): boolean
 
     if Config.DirectMoveTo.DoRaycast then
         -- TODO:// update math module and settings to be config handler based ?
-        local RaycastSettings: MathModule.RaycastSettings = {
-            range = Config.DirectMoveTo.ActivationDistance + 10, 
-            SeeThroughTransparentParts = false, 
-            SeeThroughNonCollidable = true
-        } :: MathModule.RaycastSettings
+        if not CMathRequests.CanMoveToRaycast(NPC, Target) then return false end
+    end
 
-        if not MathModule.LineOfSight(NPC, Target, RaycastSettings) then return false end
+    if Config.DirectMoveTo.CheckFloor.Enabled then
+        if not CMathRequests.CanCrossFloorRaycast(NPC, Target) then return false end
     end
 
     return true

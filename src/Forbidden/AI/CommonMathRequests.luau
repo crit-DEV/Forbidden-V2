@@ -33,23 +33,11 @@ API.CanMoveToRaycast = function(NPC: Instance, Target: Instance): boolean
 
     return MathModule.LineOfSight(NPC, Target, RaycastSettings)
 end
-type CheckFloor = {
-    Enabled: boolean,
-    BlockDirectMoveToTimer: number, -- if the floor is missing, block another attempt for `x` seconds.
-    CheckFrequencyTimer: number,
-    RaycastSpacing: number,
-    AlwaysRaycastThisDistance: number,
-    FailHeight: number
-}
-
 
 -- Checks if the floor is crossable (heuristic)
 API.CanCrossFloorRaycast = function(NPC: Instance, Target: Instance): boolean
     
     local config = ConfigHandler.GetActiveConfig(NPC)
-    
-    -- If Raycast is not necessary, just return true.
-    if not config.DirectMoveTo.CheckFloor.Enabled then return false end
     
     -- Get parts
     local npc_main      = Common.GetBasePart(NPC, true, NPC)
@@ -68,6 +56,7 @@ API.CanCrossFloorRaycast = function(NPC: Instance, Target: Instance): boolean
         
         local raycastParams = RaycastParams.new()
         local filterTable = {NPC}
+        if typeof(Target) == "Instance" then raycastParams:AddToFilter(Target) else raycastParams:AddToFilter(target_main) end
         raycastParams.FilterDescendantsInstances = filterTable
         raycastParams.FilterType = Enum.RaycastFilterType.Exclude
         raycastParams.RespectCanCollide = true
@@ -98,3 +87,5 @@ API.CanCrossFloorRaycast = function(NPC: Instance, Target: Instance): boolean
 
     return true
 end
+
+return API

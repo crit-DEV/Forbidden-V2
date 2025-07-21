@@ -29,6 +29,8 @@ local DefaultAntilag = script.antilag
 local API = {}
 
 API.SmartPathfind = function(NPC: Instance, Target: any, Yields: boolean?, Priority: RequestPriority? | number?)
+    Yields = Yields or false
+    Priority = Priority or "DefaultStart"
     MessageQueue.SendStartMessage(NPC, Target, Yields, Priority)
 end
 
@@ -64,6 +66,8 @@ end
     @param NPC <strong>Model</strong> The NPC to stop.
 ]=]
 API.Stop = function(NPC: Instance, Yields: boolean?, Priority: RequestPriority? | number?)
+    Yields = Yields or false
+    Priority = Priority or "DefaultStop"
     MessageQueue.SendStopMessage(NPC, Yields, Priority)
 end
 

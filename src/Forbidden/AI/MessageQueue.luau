@@ -118,6 +118,7 @@ end
 
 
 API.SetActiveRequest = function(NPC: Instance, Request: StartRequest | StopRequest)
+    Request.ProcessingState = "Processing"
     GetMQSingleton(NPC).ActiveRequest = Request
 end
 
@@ -244,13 +245,11 @@ API.SendStartMessage = function(NPC: Instance, Target: any, Yields: boolean?, Pr
         if MQ_Singleton.NewestStartRequest.Priority > prio then return end -- if non-processed req has greater prio then ignore new call
     end
 
-    MQ_Singleton.NewestStartRequest = {
-        Time = os.clock(),
-        Target = Target,
-        Yields = Yields or false,
-        Priority = prio,
-        ProcessingState = "Requested"
-    }
+    MQ_Singleton.NewestStartRequest.Time = os.clock()
+    MQ_Singleton.NewestStartRequest.Target = Target
+    MQ_Singleton.NewestStartRequest.Yields = Yields or false
+    MQ_Singleton.NewestStartRequest.Priority = prio
+    MQ_Singleton.NewestStartRequest.ProcessingState = "Requested"
 
     return
 end
@@ -269,12 +268,10 @@ API.SendStopMessage = function(NPC: Instance, Yields: boolean?, Priority: AIT.Re
         if MQ_Singleton.NewestStopRequest.Priority > prio then return end -- if non-processed req has greater prio then ignore new call
     end
 
-    MQ_Singleton.NewestEndRequest = {
-        Time = os.clock(),
-        Yields = Yields or false,
-        Priority = prio,
-        ProcessingState = "Requested"
-    }
+    MQ_Singleton.NewestEndRequest.Time = os.clock()
+    MQ_Singleton.NewestEndRequest.Yields = Yields or false
+    MQ_Singleton.NewestEndRequest.Priority = prio
+    MQ_Singleton.NewestEndRequest.ProcessingState = "Requested"
 
     return
 end

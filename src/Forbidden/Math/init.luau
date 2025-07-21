@@ -1,7 +1,5 @@
 local API = {}
 
-local PhysicsService = game:GetService("PhysicsService")
-
 local int_Forbidden = script.Parent
 local basic = require(int_Forbidden:WaitForChild("Standard"):WaitForChild("stdfunctions"))
 

@@ -105,11 +105,15 @@ API.GetBasePart = function(Object: any, MakePart: boolean?, DoUpdateOwner: Insta
     return nil
 end
 
--- Returns the stored 
-API.GetStoredTempPart = function(Owner: Instance, Target: CFrame | Vector3): Part
-    local TargetPos = Target
-    if typeof(Target) == "CFrame" then TargetPos = Target.Position end
-    return _MakePart(TargetPos, Owner) :: Part
+API.GetDistanceFromNPCToInstance = function(NPC: Instance, Target: Instance): number
+
+    local NPCActual = API.GetBasePart(Target, true, NPC)
+    local TargetActual = API.GetBasePart(Target, true, NPC)
+
+    if NPCActual == nil then error("NPC Actual nil") end
+    if TargetActual == nil then error("Target Actual nil") end
+
+    return (NPCActual.CFrame.Position - TargetActual.CFrame.Position).Magnitude
 end
 
 return API

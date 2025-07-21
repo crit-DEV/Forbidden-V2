@@ -25,7 +25,7 @@ TablesLibrary.DeepCopyPaste = function <T>(Overwriter, Target)
 
     for index: string, value: any in Overwriter do
         if typeof(value) == "table" then
-            Target[index] = TablesLibrary.DeepCopyPaste(Target[index], value)
+            TablesLibrary.DeepCopyPaste(value, Target[index])
             continue
         end
 
