@@ -47,4 +47,26 @@ API.GetDynamicRetrackTimer = function(NPC: Instance, Target: Instance, MovementT
     return 1
 end
 
+
+-- TODO://
+-- readd movement based retrack: but with more flex
+    -- if pathfind op, then no
+    -- if direct move to op, then yes?  
+API.ShouldRetrack = function(NPC: Instance, Target: Instance, MovementType: "Pathfind" | "DirectMoveTo"): boolean
+    local config = ConfigHandler.GetActiveConfig(NPC)
+
+    -- local TargetDistanceMoved = (Target.Position - NPC.Position).Magnitude
+
+    if MovementType == "DirectMoveTo" then
+        return config.Tracking.DynamicRetrack.MoveTo.ShouldRetrackFunction(NPC, Target)
+    end
+
+    if MovementType == "Pathfind" then
+        return config.Tracking.DynamicRetrack.Pathfind.ShouldRetrackFunction(NPC, Target)
+    end
+
+    warn("this should not occur")
+    return false
+end
+
 return API

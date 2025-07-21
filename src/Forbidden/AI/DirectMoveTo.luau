@@ -14,6 +14,7 @@ local ConfigHandler = require(root.AI.ConfigHandler)
 local Common        = require(root.Common)
 local MathModule    = require(root.Math)
 local CMathRequests = require(root.AI.CommonMathRequests)
+local ForbiddenDebugging = require(root.AI.Debugging)
 
 
 -- == External Types == --
@@ -46,7 +47,7 @@ API.CanUseDirectMoveTo = function(NPC: Instance, Target: Instance): boolean
     local npc_pos = npc_part.CFrame.Position
     local target_pos = target_part.CFrame.Position
 
-    local dist = (npc_part - target_pos).Magnitude
+    local dist = (npc_pos - target_pos).Magnitude
     if Config.DirectMoveTo.ActivationDistance < dist then return false end
 
     local yDist = npc_pos.Y - target_pos.Y
@@ -54,11 +55,11 @@ API.CanUseDirectMoveTo = function(NPC: Instance, Target: Instance): boolean
 
     if Config.DirectMoveTo.DoRaycast then
         -- TODO:// update math module and settings to be config handler based ?
-        if not CMathRequests.CanMoveToRaycast(NPC, Target) then return false end
+        if not CMathRequests.CanMoveToRaycast(NPC, Target) then ForbiddenDebugging.Log(NPC, "Failed check to target."); return false end
     end
 
     if Config.DirectMoveTo.CheckFloor.Enabled then
-        if not CMathRequests.CanCrossFloorRaycast(NPC, Target) then return false end
+        if not CMathRequests.CanCrossFloorRaycast(NPC, Target) then ForbiddenDebugging.Log(NPC, "Failed cross floor check to target."); return false end
     end
 
     return true

@@ -38,13 +38,14 @@ local Pathing = RBLXStateMachineLib.State.new("Pathing") -- The name of our stat
 local function NewRequestHandler(data)
 
     local config: AIT.Config = data.Config
-    
+
     -- If the state was entered by a Stop Request (or there is an extraneous stop request / none), then acknowledge & return.
     local NextRequest = MessageQueue.GetNewRequest(config.NPC)
     if NextRequest == nil then return end
+    if data.Request == NextRequest then return end
     
     -- Update State
-    Pathing:ChangeState("Idle")
+    data.StateMachine:ChangeState("Idle")
 
 end
 
@@ -56,12 +57,12 @@ end
 function Pathing:OnEnter(data) -- Called whenever the state changes into "Blue"
 
     if not data.NPC then error("No NPC in data!") end
-
+    
     print("Pathing: " .. data.NPC:GetFullName())
     -- Could also write: self.Data.part.Color
 
     -- Compute the path to the target.
-    local config: AIT.Config = data.config
+    local config: AIT.Config = data.Config
     local target: Instance? = data.Target
     if not target then
         ForbiddenDebugging.Log(config.NPC, "No target set for Pathing state, cannot compute path.")
@@ -75,7 +76,7 @@ function Pathing:OnEnter(data) -- Called whenever the state changes into "Blue"
     end
 
     -- Set the waypoints in the state data.
-    Pathing:ChangeData("Waypoints", waypoints)
+    data.StateMachine:ChangeData("Waypoints", waypoints)
 
     -- Start the waypoint looper.
     local function completedSignal()
@@ -83,7 +84,7 @@ function Pathing:OnEnter(data) -- Called whenever the state changes into "Blue"
         ForbiddenDebugging.Log(config.NPC, "Pathing completed for ", config.NPC:GetFullName())
         -- Optionally, you can change the state or perform other actions here.
         data.Request.ProcessingState = "Processed"
-        Pathing:ChangeState("Idle")
+        data.StateMachine:ChangeState("Idle")
     end
     WaypointLooper.StartContinuity(config.NPC, target, waypoints, completedSignal)
 

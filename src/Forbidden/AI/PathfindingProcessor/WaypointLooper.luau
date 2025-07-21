@@ -31,14 +31,16 @@ local ActiveContinuities: {[Instance]: {
 }} = {}
 
 local function isValid(NPC: Instance): boolean
-    local NPCHuman = NPC:FindFirstAncestorOfClass("Humanoid")
+    local NPCHuman = NPC:FindFirstChildOfClass("Humanoid")
     if NPCHuman == nil then return false end
     if NPCHuman.Health == 0 then return false end
+    
+    return true
 end
 
 local function LoopThroughWaypoints(NPC: Instance)
     
-    local NPCHuman = NPC:FindFirstAncestorOfClass("Humanoid")
+    local NPCHuman = NPC:FindFirstChildOfClass("Humanoid")
     if NPCHuman == nil then error("nil human") end
 
     local config: AIT.Config = ConfigHandler.GetActiveConfig(NPC)

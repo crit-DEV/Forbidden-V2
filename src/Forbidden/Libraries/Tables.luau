@@ -5,7 +5,7 @@ From prooheckcp_robloxstatemachine@1.1.7
 TablesLibrary = {}
 
 TablesLibrary.DeepCopy = function <T>(object)
-    local newObject = setmetatable({}, getmetatable(object)) -- Clone metaData (@rman501, good that it does this.)
+    local newObject = {} -- Clone metaData (@rman501, good that it does this.)
 
     for index: string, value: any in object do
         if typeof(value) == "table" then
@@ -16,21 +16,19 @@ TablesLibrary.DeepCopy = function <T>(object)
         newObject[index] = value
     end
 
-    return newObject
+	return setmetatable(newObject, getmetatable(object))
 end
 
-
-TablesLibrary.DeepCopyPaste = function <T>(Overwriter, Target)
-    setmetatable(Target, getmetatable(Overwriter)) -- Clone metaData (@rman501, good that it does this.)
-
-    for index: string, value: any in Overwriter do
+TablesLibrary.DeepCopyPaste = function(Overwriter, Target)
+    for index, value in Overwriter do
         if typeof(value) == "table" then
             TablesLibrary.DeepCopyPaste(value, Target[index])
-            continue
+        else
+            Target[index] = value
         end
-
-        Target[index] = value
     end
+
+    setmetatable(Target, getmetatable(Overwriter))
 end
 
 TablesLibrary.LockKeyInTable = function <T>(Target, Key: string)

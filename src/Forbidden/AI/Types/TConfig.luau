@@ -5,11 +5,11 @@
 export type Config = {
     -- Config Metadata
     NPC: Instance,
-    RestoreDefaults: () -> (),
-    RestoreActiveConfig: () -> (),
-    SavePreset: (PresetName: string, SaveGlobally: boolean?) -> (),
-    LoadPreset: (PresetName: string, UseGlobalIfBothFound: boolean?) -> (),
-    ApplyNow: () -> (),
+    RestoreDefaults: (self: Config) -> (),
+    RestoreActiveConfig: (self: Config) -> (),
+    SavePreset: (self: Config, PresetName: string, SaveGlobally: boolean?) -> (),
+    LoadPreset: (self: Config, PresetName: string, UseGlobalIfBothFound: boolean?) -> (),
+    ApplyNow: (self: Config) -> (),
     -- Actual Settings
     StopType: StopType,
     Visualization: Visualization,
@@ -97,7 +97,8 @@ type Tracking = {
     DynamicRetrack: {
         MoveTo: BaseDynamicRetrackTimerConfig,
         Pathfind: BaseDynamicRetrackTimerConfig
-    }
+    },
+    SkipToWaypoint: number -- skips to x waypoint
 }
 
 type BaseDynamicRetrackTimerConfig = {

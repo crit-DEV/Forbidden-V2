@@ -64,6 +64,7 @@ Defaults.Tracking = {} :: any
 Defaults.Tracking.Enabled                           = false -- Master control for tracking
 Defaults.Tracking.CollinearTargetPositionOffset     = 1 -- If set, the NPC will offset the target's position by this amount when calculating the path (only when using Moveto ops)
 Defaults.Tracking.PredictionMagnitude               = 1 -- If true, the NPC will predict the target's movement and adjust its path accordingly
+Defaults.Tracking.SkipToWaypoint                    = 3 -- skips to x waypoint, if set to 1 (or below), it will not skip any waypoints (will always track to last waypoint)      
 
 -- == Dynamic Retrack Configuration == --
 Defaults.Tracking.DynamicRetrack = {} :: any

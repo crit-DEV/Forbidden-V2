@@ -26,8 +26,9 @@ local AIT                   = require(ForbiddenDir.AI.Types)
 -- == Forbidden Modules & Architecture == --
 local ForbiddenDebugging    = require(ForbiddenDir.AI.Debugging)
 local MessageQueue          = require(ForbiddenDir.AI.MessageQueue)
-local Common                = require(ForbiddenDir.Common)
+local ConfigHandler         = require(ForbiddenDir.AI.ConfigHandler)
 local WaypointLooper        = require(ForbiddenDir.AI.PathfindingProcessor.WaypointLooper)
+local Common                = require(ForbiddenDir.Common)
 
 
 -- == Setup == --
@@ -70,7 +71,7 @@ local function NewRequestHandler(data)
         if data.Target ~= nil then
             -- stop the NPC.
             StopNPCByStopType(config)
-            Idle:ChangeData("Target", nil)
+            data.StateMachine:ChangeData("Target", nil)
         end
         MessageQueue.SetActiveRequest(config.NPC, NextRequest)
         NextRequest.ProcessingState = "Processed"
@@ -85,17 +86,21 @@ local function NewRequestHandler(data)
     NextRequest.ProcessingState = "Processing"
     
     -- Update Data
-    Idle:ChangeData("Request", NextRequest)
-    Idle:ChangeData("Target", NextRequest.Target)
+    data.StateMachine:ChangeData("Request", NextRequest)
+    data.StateMachine:ChangeData("Target", NextRequest.Target)
 
 
     -- Change State
     if NextRequest.Target then
+        -- print(ConfigHandler.GetConfig(config.NPC).Tracking.Enabled)
+        -- print(ConfigHandler.GetActiveConfig(config.NPC).Tracking.Enabled)
+        config:ApplyNow() -- Apply the config to the NPC.
+        print(config)
         task.spawn(config.Hooks.StartAcknowledged,config.NPC, NextRequest.Target)
-        if config.Tracking.Enabled then
-            Idle:ChangeState("Tracking")
+        if config.Tracking.Enabled and typeof(NextRequest.Target) == "Instance" then
+            data.StateMachine:ChangeState("Tracking")
         else
-            Idle:ChangeState("Pathing")
+            data.StateMachine:ChangeState("Pathing")
         end
     else
         ForbiddenDebugging.Log(config.NPC, "No target set for Idle state, cannot change to Pathing or Tracking.")
@@ -132,6 +137,7 @@ end
 function Idle:OnLeave() -- Called whenever the state is left even if target gets destroyed
     local config: AIT.Config = self.Data.Config
     ForbiddenDebugging.Log(config.NPC, "Leaving Idle State for ", config.NPC:GetFullName())
+    
 end
 
 return Idle

@@ -45,7 +45,7 @@ local function NewRequestHandler(data)
     if NextRequest == nil then return end
     
     -- Update State
-    Tracking:ChangeState("Idle")
+    data.StateMachine:ChangeState("Idle")
 
 end
 
@@ -54,11 +54,10 @@ function Tracking:OnInit() -- This gets called as soon as the state machine is c
     -- state machine created
 end
 
-function Tracking:Pathfind(): boolean
+function Tracking:Pathfind(data): boolean
     -- Compute the path to the target.
-    print("this might not work!")
-    local config: AIT.Config = self.Data.config
-    local target: Instance? = self.Data.Target
+    local config: AIT.Config = data.Config
+    local target: Instance? = data.Target
     if not target then
         ForbiddenDebugging.Log(config.NPC, "No target set for Tracking state, cannot compute path.")
         return false
@@ -70,13 +69,18 @@ function Tracking:Pathfind(): boolean
         return false
     end
 
+    if config.Tracking.SkipToWaypoint > 1 then
+        -- Skip to the waypoint specified by SkipToWaypoint
+        local skipIndex = math.min(config.Tracking.SkipToWaypoint, #waypoints)
+        waypoints = {table.unpack(waypoints, skipIndex)}
+    end
+
     -- Set the waypoints in the state data.
-    Tracking:ChangeData("Waypoints", waypoints)
-    Tracking:ChangeData("LastTrackingRecall", os.clock())
+    data.StateMachine:ChangeData("Waypoints", waypoints)
     if #waypoints > 1 then
-        Tracking:ChangeData("RecallType", "Pathfind")
+        data.StateMachine:ChangeData("RecallType", "Pathfind")
     else
-        Tracking:ChangeData("RecallType", "DirectMoveTo")
+        data.StateMachine:ChangeData("RecallType", "DirectMoveTo")
     end
 
     -- Start the waypoint looper.
@@ -94,8 +98,8 @@ function Tracking:OnEnter(data) -- Called whenever the state changes into "Blue"
     if not data.NPC then error("No NPC in data!") end
 
     print("Tracking: " .. data.NPC:GetFullName())
-    -- Could also write: self.Data.part.Color
-    Tracking:ChangeData("LastTrackingRecall", 0)
+    -- Could also write: data.part.Color
+    data.StateMachine:ChangeData("LastTrackingRecall", 0)
 end
 
 function Tracking:OnHeartbeat(data) -- Called every heartbeat
@@ -105,15 +109,17 @@ function Tracking:OnHeartbeat(data) -- Called every heartbeat
     local NPC: Instance = config.NPC
 
     local NextRecallTime = data.LastTrackingRecall + RetrackingOptimization.GetDynamicRetrackTimer(NPC, data.Target, data.RecallType)
+    -- print(NextRecallTime - os.clock(), " seconds until next recall." )
     if os.clock() < NextRecallTime then return end -- not time to recall yet.
+    data.StateMachine:ChangeData("LastTrackingRecall", os.clock())
 
     ForbiddenDebugging.Log("Recalling!")
-    local success = Tracking:Pathfind()
+    local success = Tracking:Pathfind(data)
     if not success then ForbiddenDebugging.Log(NPC, "Recall failed! Target: ", data.Target) end
 end
 
-function Tracking:OnLeave() -- Called whenever the state is left even if target gets destroyed
-    local config: AIT.Config = self.Data.Config
+function Tracking:OnLeave(data) -- Called whenever the state is left even if target gets destroyed
+    local config: AIT.Config = data.Config
     ForbiddenDebugging.Log(config.NPC, "Leaving Tracking State for ", config.NPC:GetFullName())
 end
 

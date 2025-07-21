@@ -20,8 +20,9 @@ export type StopType = AIT.StopType -- AI.StopType
 export type RequestPriority = AIT.RequestPriority -- AI.RequestPriority
 
 -- == Forbidden Modules & Architecture == --
-local MessageQueue = require(script.MessageQueue)
-local ConfigHandler = require(script.ConfigHandler)
+local MessageQueue          = require(script.MessageQueue)
+local PathfindingProcessor  = require(script.PathfindingProcessor)
+local ConfigHandler         = require(script.ConfigHandler)
 
 -- == Forbidden References == --
 local DefaultAntilag = script.antilag
@@ -31,6 +32,7 @@ local API = {}
 API.SmartPathfind = function(NPC: Instance, Target: any, Yields: boolean?, Priority: RequestPriority? | number?)
     Yields = Yields or false
     Priority = Priority or "DefaultStart"
+    PathfindingProcessor.InitializeStateMachine(NPC) -- will return if already initialized
     MessageQueue.SendStartMessage(NPC, Target, Yields, Priority)
 end
 

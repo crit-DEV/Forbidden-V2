@@ -388,7 +388,7 @@ ConfigHandler.GetConfig = function(NPC: Instance): AIT.Config
         InitializeConfig(NPC)
     end
     
-    return TablesLibrary.DeepCopy(LocalConfigInstances[NPC])
+    return LocalConfigInstances[NPC]
 end
 
 
@@ -423,7 +423,7 @@ ConfigHandler.GetActiveConfig = function(NPC: Instance): AIT.Config
         InitializeConfig(NPC)
     end
     
-    return TablesLibrary.DeepCopy(ActiveConfigInstances[NPC])
+    return ActiveConfigInstances[NPC]
 end
 
 return ConfigHandler

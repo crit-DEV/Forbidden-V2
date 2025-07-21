@@ -53,21 +53,32 @@ local BlockedIndices: {[Instance]: {number}} = {}
 local Paths: {[Instance]: {AgentInfo: AIT.AgentInfo, PathObject: Path, UsingPathfind: boolean}} = {}
 
 -- == API Functions == --
-local function InitializeStateMachine(NPC: Instance)
+API.InitializeStateMachine = function(NPC: Instance)
     if StateMachines[NPC] then return end
+
+    local states = RBLXStateMachineLib:LoadDirectory(script.States)
 
     local thisStateMachine = RBLXStateMachineLib.new(
         "Idle", -- Initial State
-        RBLXStateMachineLib:LoadDirectory(script.States),
+        states,
         { -- data
             -- time = tick(), -- Sends the current tick
             Config = ConfigHandler.GetActiveConfig(NPC),
+            NPC = NPC,
             Target = nil,
             Waypoints = {},
             LastTrackingRecall = 0,
             RecallType = "DirectMoveTo"
         }
     )
+
+    thisStateMachine.StateChanged:Connect(function()
+        local prevState = thisStateMachine:GetPreviousState()
+        local newState = thisStateMachine:GetCurrentState()
+        print("State changed from", prevState, "to", newState)
+    end)
+    
+    thisStateMachine.Data.StateMachine = thisStateMachine
 
     StateMachines[NPC] = thisStateMachine
 end
@@ -95,6 +106,15 @@ end
 
 
 local function ConfigurePath(NPC: Instance, Path: Path)
+    if Paths[NPC] == nil then 
+		Paths[NPC] = {
+			AgentInfo = ConfigHandler.GetActiveConfig(NPC).AgentInfo,
+			PathObject = Path,
+			UsingPathfind = false
+		}
+	else
+		Paths[NPC].PathObject = Path
+	end
     Paths[NPC].UsingPathfind = true
     BlockedIndices[NPC] = {}
 end
@@ -149,6 +169,14 @@ API.ComputePath = function(NPC: Instance, Target: any): {PathWaypoint}?
     -- Get the path
     local Path: Path = GetPath(NPC)
     ConfigurePath(NPC, Path)
+
+    local NPCActual = Common.GetBasePart(NPC)
+    local TargetActual = Common.GetBasePart(Target, true, NPC)
+
+    Path:ComputeAsync(NPCActual.Position, TargetActual.Position)
+    if Path.Status == Enum.PathStatus.Success then
+        return Path:GetWaypoints()
+    end
 
     -- default, no path
     return nil
