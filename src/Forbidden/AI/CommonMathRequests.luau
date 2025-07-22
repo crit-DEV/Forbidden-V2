@@ -25,7 +25,7 @@ API.CanMoveToRaycast = function(NPC: Instance, Target: Instance): boolean
     local config = ConfigHandler.GetActiveConfig(NPC)
 
     local RaycastSettings: MathModule.RaycastSettings = {
-        range = config.DirectMoveTo.ActivationDistance + 10,
+        Range = config.DirectMoveTo.ActivationDistance + 10,
         SeeThroughTransparentParts = false,
         SeeThroughNonCollidable = true
     } :: MathModule.RaycastSettings

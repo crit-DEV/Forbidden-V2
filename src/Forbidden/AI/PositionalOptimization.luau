@@ -68,10 +68,14 @@ end
     @return <strong>Vector3?</strong> Returns the grounded position or <strong>nil</strong> if not possible.
 ]=]
 API.GetCollinearTargetPositionOffset = function(Origin: Vector3, Target: Vector3, Offset: number): Vector3
-    local delta: Vector3 = Origin - Target
+    local delta: Vector3 = Target - Origin
     if delta.Magnitude == 0 then
-        return Target -- or some sensible fallback
+        return Origin
     end
 
-    return Target + (delta.Unit * Offset)
+    if delta.Magnitude < Offset then
+        return Target
+    end
+
+    return Origin + (delta.Unit * Offset)
 end

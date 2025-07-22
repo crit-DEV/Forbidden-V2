@@ -54,6 +54,31 @@ local function _MakePart(v3: Vector3, DoUpdateObject: Instance?): Part
 end
 
 
+local function GetBasePartFromModel(Model: Model): BasePart?
+     if Model:FindFirstChildOfClass("Humanoid") then
+            
+        -- Return the HRT if available.
+        local partToReturn = Model:FindFirstChild("HumanoidRootPart")
+            if partToReturn ~= nil then return partToReturn end
+        
+        -- Return the Torso if available.
+        partToReturn = Model:FindFirstChild("Torso")
+            if partToReturn ~= nil then return partToReturn end
+    end
+
+    if Model.PrimaryPart then
+        return Model.PrimaryPart
+    end
+
+    local ffoc = Model:FindFirstChildOfClass("BasePart")
+    if ffoc then
+        return ffoc
+    end
+
+    return nil
+end 
+
+
 -- == API Functions == --
 API.GetBasePart = function(Object: any, MakePart: boolean?, DoUpdateOwner: Instance?): BasePart?
     
@@ -65,27 +90,13 @@ API.GetBasePart = function(Object: any, MakePart: boolean?, DoUpdateOwner: Insta
         end
 
         if Object:IsA("Model") then
-            if Object:FindFirstChildOfClass("Humanoid") then
-                
-                -- Return the HRT if available.
-                local partToReturn = Object:FindFirstChild("HumanoidRootPart")
-                    if partToReturn ~= nil then return partToReturn end
-                
-                -- Return the Torso if available.
-                partToReturn = Object:FindFirstChild("Torso")
-                    if partToReturn ~= nil then return partToReturn end
-                
-                -- Return the PrimaryPart if available.
-                partToReturn = Object.PrimaryPart
-                    if partToReturn ~= nil then return partToReturn end
+           return GetBasePartFromModel(Object)
+        end
 
-                -- Return any part if available.
-                partToReturn = Object:FindFirstChildOfClass("BasePart")
-                    if partToReturn ~= nil then return partToReturn end
-                
-                -- No part in model
-                return nil
-
+        if Object:IsA("Player") then
+            local character = Object.Character
+            if character then
+                return GetBasePartFromModel(character)
             end
         end
     end
@@ -105,9 +116,9 @@ API.GetBasePart = function(Object: any, MakePart: boolean?, DoUpdateOwner: Insta
     return nil
 end
 
-API.GetDistanceFromNPCToInstance = function(NPC: Instance, Target: Instance): number
+API.GetDistanceFromNPCToTarget = function(NPC: Instance, Target: Instance): number
 
-    local NPCActual = API.GetBasePart(Target, true, NPC)
+    local NPCActual = API.GetBasePart(NPC)
     local TargetActual = API.GetBasePart(Target, true, NPC)
 
     if NPCActual == nil then error("NPC Actual nil") end

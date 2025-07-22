@@ -42,8 +42,8 @@ end
 
     The stop method can be customized with `config.StopType`.
 
-    <strong>If you are recalling immediately and want the AI to <u>transition smoothly</u>,
-    <u>do not call</u> AI.Stop</strong>
+    <strong>If you are recalling immediately and want the AI to <ul>transition smoothly</ul>,
+    <ul>do not call</ul> AI.Stop</strong>
 
     ```lua
     -- Usage Example

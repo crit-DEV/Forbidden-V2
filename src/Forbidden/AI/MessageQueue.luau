@@ -268,10 +268,10 @@ API.SendStopMessage = function(NPC: Instance, Yields: boolean?, Priority: AIT.Re
         if MQ_Singleton.NewestStopRequest.Priority > prio then return end -- if non-processed req has greater prio then ignore new call
     end
 
-    MQ_Singleton.NewestEndRequest.Time = os.clock()
-    MQ_Singleton.NewestEndRequest.Yields = Yields or false
-    MQ_Singleton.NewestEndRequest.Priority = prio
-    MQ_Singleton.NewestEndRequest.ProcessingState = "Requested"
+    MQ_Singleton.NewestStopRequest.Time = os.clock()
+    MQ_Singleton.NewestStopRequest.Yields = Yields or false
+    MQ_Singleton.NewestStopRequest.Priority = prio
+    MQ_Singleton.NewestStopRequest.ProcessingState = "Requested"
 
     return
 end

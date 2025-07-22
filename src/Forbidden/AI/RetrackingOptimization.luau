@@ -28,16 +28,24 @@ API.GetDynamicRetrackTimer = function(NPC: Instance, Target: Instance, MovementT
     local config = ConfigHandler.GetActiveConfig(NPC)
 
     if MovementType == "DirectMoveTo" then
+        local timer = config.Tracking.DynamicRetrack.MoveTo.GetRetrackTimeFunction(NPC, Target)
+        if timer == nil then 
+            return config.Tracking.DynamicRetrack.MoveTo.MaxTimer 
+        end 
         return math.clamp(
-            config.Tracking.DynamicRetrack.MoveTo.GetRetrackTimeFunction(NPC, Target), 
+            timer, 
             config.Tracking.DynamicRetrack.MoveTo.MinTimer, 
             config.Tracking.DynamicRetrack.MoveTo.MaxTimer
         )
     end
 
     if MovementType == "Pathfind" then
+        local timer = config.Tracking.DynamicRetrack.Pathfind.GetRetrackTimeFunction(NPC, Target)
+        if timer == nil then 
+            return config.Tracking.DynamicRetrack.Pathfind.MaxTimer 
+        end 
         return math.clamp(
-            config.Tracking.DynamicRetrack.Pathfind.GetRetrackTimeFunction(NPC, Target), 
+            timer, 
             config.Tracking.DynamicRetrack.Pathfind.MinTimer, 
             config.Tracking.DynamicRetrack.Pathfind.MaxTimer
         )
@@ -58,11 +66,19 @@ API.ShouldRetrack = function(NPC: Instance, Target: Instance, MovementType: "Pat
     -- local TargetDistanceMoved = (Target.Position - NPC.Position).Magnitude
 
     if MovementType == "DirectMoveTo" then
-        return config.Tracking.DynamicRetrack.MoveTo.ShouldRetrackFunction(NPC, Target)
+        local result = config.Tracking.DynamicRetrack.MoveTo.ShouldRetrackFunction(NPC, Target)
+        if result == nil then
+            return config.Tracking.DynamicRetrack.MoveTo.MaxTimer
+        end
+        return result
     end
 
     if MovementType == "Pathfind" then
-        return config.Tracking.DynamicRetrack.Pathfind.ShouldRetrackFunction(NPC, Target)
+        local result = config.Tracking.DynamicRetrack.Pathfind.ShouldRetrackFunction(NPC, Target)
+        if result == nil then
+            return config.Tracking.DynamicRetrack.Pathfind.MaxTimer
+        end
+        return result
     end
 
     warn("this should not occur")

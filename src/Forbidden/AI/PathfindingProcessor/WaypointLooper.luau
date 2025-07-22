@@ -18,6 +18,7 @@ local AIT                   = require(ForbiddenDir.AI.Types)
 
 -- == Forbidden Modules & Architecture == --
 local ConfigHandler         = require(ForbiddenDir.AI.ConfigHandler)
+local WaypointVisualizer    = require(ForbiddenDir.AI.Visualization.WaypointsVisualization)
 
 
 -- == Initialization == --
@@ -40,18 +41,30 @@ end
 
 local function LoopThroughWaypoints(NPC: Instance)
     
+    -- Validate
     local NPCHuman = NPC:FindFirstChildOfClass("Humanoid")
     if NPCHuman == nil then error("nil human") end
 
+    -- Get config
     local config: AIT.Config = ConfigHandler.GetActiveConfig(NPC)
 
+    
+    -- Dereferencing from the table
     local thisCont = ActiveContinuities[NPC]
     
     local thisId = thisCont.RequestId
     local theseWaypoints = thisCont.waypoints
     local thisWaypointCount = #theseWaypoints
     local thisCompletedSignal = thisCont.CompletedSignal
+    
+    -- Visualize
+    if config.Visualization.Enabled then
+        if config.Visualization.Path then
+            WaypointVisualizer.VisualizeWaypoints(NPC, theseWaypoints)
+        end
+    end
 
+    -- Loop Through Waypoints
     for i=1, thisWaypointCount, 1 do
 
         -- Verify this is the most recent request & it is not stopped
@@ -93,7 +106,6 @@ API.StartContinuity = function(NPC: Instance, Target: any, WPs: {PathWaypoint}, 
     if not ActiveContinuities[NPC] then
         ActiveContinuities[NPC] = {RequestId = 0, Target = nil, index = 1, waypoints = {}, CompletedSignal = function() end}
     end
-
     
     local thisCont = ActiveContinuities[NPC]
 

@@ -97,7 +97,7 @@ function Tracking:OnEnter(data) -- Called whenever the state changes into "Blue"
 
     if not data.NPC then error("No NPC in data!") end
 
-    print("Tracking: " .. data.NPC:GetFullName())
+    ForbiddenDebugging.Log(data.NPC, "Tracking: " .. data.NPC:GetFullName())
     -- Could also write: data.part.Color
     data.StateMachine:ChangeData("LastTrackingRecall", 0)
 end
@@ -108,9 +108,25 @@ function Tracking:OnHeartbeat(data) -- Called every heartbeat
     local config: AIT.Config = data.Config
     local NPC: Instance = config.NPC
 
+    local NPCHuman: Humanoid? = NPC:FindFirstChildOfClass("Humanoid")
+    if NPC == nil or NPCHuman == nil or NPCHuman.Health == 0 then
+        ForbiddenDebugging.Log(NPC, "NPC is nil, has no Humanoid, or is dead in Tracking state, cannot continue.")
+        data.StateMachine:ChangeState("Idle")
+        return
+    end
+
+    if data.Target == nil or Common.GetBasePart(data.Target, true, NPC) == nil then
+        ForbiddenDebugging.Log(NPC, "Target is nil or invalid in Tracking state, cannot continue.")
+        data.StateMachine:ChangeState("Idle")
+        return
+    end
+    
+    -- Is it time to recall?
     local NextRecallTime = data.LastTrackingRecall + RetrackingOptimization.GetDynamicRetrackTimer(NPC, data.Target, data.RecallType)
     -- print(NextRecallTime - os.clock(), " seconds until next recall." )
     if os.clock() < NextRecallTime then return end -- not time to recall yet.
+    if not RetrackingOptimization.ShouldRetrack(NPC, data.Target, data.RecallType) then return end
+    
     data.StateMachine:ChangeData("LastTrackingRecall", os.clock())
 
     ForbiddenDebugging.Log("Recalling!")

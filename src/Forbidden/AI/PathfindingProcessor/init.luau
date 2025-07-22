@@ -75,7 +75,7 @@ API.InitializeStateMachine = function(NPC: Instance)
     thisStateMachine.StateChanged:Connect(function()
         local prevState = thisStateMachine:GetPreviousState()
         local newState = thisStateMachine:GetCurrentState()
-        print("State changed from", prevState, "to", newState)
+        ForbiddenDebugging.Log(NPC, "State changed from", prevState, "to", newState)
     end)
     
     thisStateMachine.Data.StateMachine = thisStateMachine
@@ -134,16 +134,21 @@ end
 local function GetPath(NPC: Instance): Path
     -- Get the !active! config for the NPC
     local Config: AIT.Config = ConfigHandler.GetActiveConfig(NPC)
-    if not Paths[NPC] then return PathfindingService:CreatePath(Config.AgentInfo) end
     
-    if TablesAreEqual(Paths[NPC].AgentInfo, Config.AgentInfo) then return Paths[NPC].PathObject end
+    if Paths[NPC] and Paths[NPC].PathObject and TablesAreEqual(Paths[NPC].AgentInfo, Config.AgentInfo) then return Paths[NPC].PathObject end
 
     local path = PathfindingService:CreatePath(Config.AgentInfo)
     path.Blocked:Connect(function(wpi: number) onPathBlocked(NPC, wpi) end)
     path.Unblocked:Connect(function(wpi: number) onPathUnblocked(NPC, wpi) end)
-    if Paths[NPC].PathObject then
+
+    if not Paths[NPC] then
+		Paths[NPC] = {} :: any
+	end
+	
+	if Paths[NPC].PathObject then
         debris:AddItem(Paths[NPC].PathObject, 0)
-    end
+	end
+	
     Paths[NPC].AgentInfo = Config.AgentInfo
     Paths[NPC].PathObject = path
 
@@ -162,8 +167,9 @@ API.ComputePath = function(NPC: Instance, Target: any): {PathWaypoint}?
 
     -- Direct move to stuff.
     if DirectMoveTo.CanUseDirectMoveTo(NPC, Target) then
+		if Paths[NPC] == nil then Paths[NPC] = {} :: any end
         Paths[NPC].UsingPathfind = false
-        return {PathWaypoint.new(TargetActual.CFrame.Position, Enum.PathWaypointAction.Walk)}
+        return {PathWaypoint.new(TargetActual.CFrame.Position, Enum.PathWaypointAction.Walk, "ForbiddenDirectMoveTo")}
     end
 
     -- Get the path

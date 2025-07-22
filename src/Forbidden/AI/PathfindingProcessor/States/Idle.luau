@@ -95,7 +95,6 @@ local function NewRequestHandler(data)
         -- print(ConfigHandler.GetConfig(config.NPC).Tracking.Enabled)
         -- print(ConfigHandler.GetActiveConfig(config.NPC).Tracking.Enabled)
         config:ApplyNow() -- Apply the config to the NPC.
-        print(config)
         task.spawn(config.Hooks.StartAcknowledged,config.NPC, NextRequest.Target)
         if config.Tracking.Enabled and typeof(NextRequest.Target) == "Instance" then
             data.StateMachine:ChangeState("Tracking")

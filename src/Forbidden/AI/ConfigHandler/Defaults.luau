@@ -51,7 +51,7 @@ Defaults.AgentInfo.Costs            = {} -- {Water = 20, myPFLink = 10, etc...}
 Defaults.Visualization = {} :: any
 Defaults.Visualization.Enabled              = false -- Master control for visualization
 Defaults.Visualization.Path                 = true -- Show the path the NPC will take
-Defaults.Visualization.PathColor            = Color3.fromRGB(255, 0, 0) -- (RED) Color of the path visualization
+Defaults.Visualization.PathColor            = Color3.fromRGB(98, 87, 255) -- (RED) Color of the path visualization
 Defaults.Visualization.Celling              = false -- celling visualization, if true, the NPC will visualize the offset of the path to avoid obstacles around it.
 Defaults.Visualization.CellingColor         = Color3.fromRGB(0, 255, 0) -- (GREEN) Color of the celling visualization
 Defaults.Visualization.MovetoRaycast        = false -- Show the raycast used for MoveTo
@@ -72,24 +72,32 @@ Defaults.Tracking.DynamicRetrack = {} :: any
 
 Defaults.Tracking.DynamicRetrack.MoveTo = {} :: any
 Defaults.Tracking.DynamicRetrack.MoveTo.MinTimer = 0 -- minimum retrack time if last op was a DirectMoveTo
-Defaults.Tracking.DynamicRetrack.MoveTo.MaxTimer = 2 -- maximum retrack time if last op was a DirectMoveTo
+Defaults.Tracking.DynamicRetrack.MoveTo.MaxTimer = 1 -- maximum retrack time if last op was a DirectMoveTo
 Defaults.Tracking.DynamicRetrack.MoveTo.GetRetrackTimeFunction = function(NPC: Instance, Target: Instance): number
-    return math.min(
-        Defaults.Tracking.DynamicRetrack.MoveTo.MinTimer + 0.5 * Common.GetDistanceFromNPCToInstance(NPC, Target) / 10, 
-        Defaults.Tracking.DynamicRetrack.MoveTo.MaxTimer
-    )
+    local timer = Common.GetDistanceFromNPCToTarget(NPC, Target) / 40 - 0.5 -- basically ranges from 0 to 0 for first 20studs, and 0 -> 0.5 after 
+    return timer
+
+    -- another function handles the clamping of the timer, so this function can return any value.
+    -- by default it chooses max if there is an error.
+end
+Defaults.Tracking.DynamicRetrack.MoveTo.ShouldRetrackFunction = function(NPC: Instance, Target: any): boolean
+    return true
 end
 
 Defaults.Tracking.DynamicRetrack.Pathfind = {} :: any
-Defaults.Tracking.DynamicRetrack.Pathfind.MinTimer = 1 -- minimum retrack time if last op was a pathfind
+Defaults.Tracking.DynamicRetrack.Pathfind.MinTimer = 0.5 -- minimum retrack time if last op was a pathfind
 Defaults.Tracking.DynamicRetrack.Pathfind.MaxTimer = 5 -- maximum retrack time if last op was a pathfind
+Defaults.Tracking.DynamicRetrack.Pathfind.MaxTimer = 3 -- maximum retrack time if last op was a pathfind
 Defaults.Tracking.DynamicRetrack.Pathfind.GetRetrackTimeFunction = function(NPC: Instance, Target: Instance): number
-    return math.min(
-        Defaults.Tracking.DynamicRetrack.Pathfind.MinTimer + 1 * Common.GetDistanceFromNPCToInstance(NPC, Target) / 10, 
-        Defaults.Tracking.DynamicRetrack.Pathfind.MaxTimer
-    )
+    local timer = Defaults.Tracking.DynamicRetrack.Pathfind.MinTimer + Common.GetDistanceFromNPCToTarget(NPC, Target) / 40
+    return timer
 end
-    -- it should be noted, this function does not change even if a new cfg is used and the values are changed.
+
+Defaults.Tracking.DynamicRetrack.Pathfind.ShouldRetrackFunction = function(NPC: Instance, Target: any): boolean
+    return true
+end
+
+    -- it should be noted, theses functions do not change even if a new cfg is used and the values are changed.
     -- the function must be replaced.
     -- this is as we cannot use a cyclic dependency to the ConfigHandler file
     -- if someone wants to fix they can.
@@ -98,7 +106,7 @@ end
 -- == Direct MoveTo Configuration == --
 Defaults.DirectMoveTo = {} :: any
 Defaults.DirectMoveTo.Enabled               = true
-Defaults.DirectMoveTo.ActivationDistance    = 20    -- If the distance between the NPC & Target is less than this setting, it will be possible to use DirectMoveTo.
+Defaults.DirectMoveTo.ActivationDistance    = 40    -- If the distance between the NPC & Target is less than this setting, it will be possible to use DirectMoveTo.
 Defaults.DirectMoveTo.HeightLimit           = 5     -- If the difference between the Y position of the NPC & Target is less than this setting, it will be possible to use DirectMoveTo
 Defaults.DirectMoveTo.JumpHandler           = true  -- Allows Forbidden to make use of the JumpHandler when using DirectMoveTo
 Defaults.DirectMoveTo.DoRaycast             = true  -- Enables raycasting that must return a positive result ot use the DirectMoveTo method.
@@ -107,12 +115,13 @@ Defaults.DirectMoveTo.AvoidUseHook          = nullbind  -- Allows the user to ad
 
 -- == Direct MoveTo -> Checking Floor Config == --
 Defaults.DirectMoveTo.CheckFloor = {} :: any
-Defaults.DirectMoveTo.CheckFloor.Enabled                    = true -- Before attempting a move to, it will check for voids in the floor.
-Defaults.DirectMoveTo.CheckFloor.FailHeight                 = Defaults.DirectMoveTo.HeightLimit + Defaults.AgentInfo.AgentHeight / 2 -- If the distance from the raycast to the ground is this (or more), then it is considered a fail.
-Defaults.DirectMoveTo.CheckFloor.RaycastSpacing             = 5 -- How spaced out should the raycast be to the target.
-Defaults.DirectMoveTo.CheckFloor.AlwaysRaycastThisDistance  = 2 -- What distance should always be raycasted (in studs away from the NPC)
-Defaults.DirectMoveTo.CheckFloor.CheckFrequencyTimer        = 1 -- How often should the checks be done? (if possible)
-Defaults.DirectMoveTo.CheckFloor.BlockDirectMoveToTimer     = 3 -- How long should an attempt to do another DirectMoveTo call be blocked for.
+Defaults.DirectMoveTo.CheckFloor.Enabled                     = true -- Before attempting a move to, it will check for voids in the floor.
+Defaults.DirectMoveTo.CheckFloor.FailHeight                  = Defaults.DirectMoveTo.HeightLimit + Defaults.AgentInfo.AgentHeight / 2 -- If the distance from the raycast to the ground is this (or more), then it is considered a fail.
+Defaults.DirectMoveTo.CheckFloor.RaycastSpacing              = 5 -- How spaced out should the raycast be to the target.
+Defaults.DirectMoveTo.CheckFloor.AlwaysRaycastThisDistance   = 2 -- What distance should always be raycasted (in studs away from the NPC)
+Defaults.DirectMoveTo.CheckFloor.CheckFrequencyTimer         = 1 -- How often should the checks be done? (if possible)
+Defaults.DirectMoveTo.CheckFloor.BlockDirectMoveToTimer      = 3 -- How long should an attempt to do another DirectMoveTo call be blocked for.
+Defaults.DirectMoveTo.CheckFloor.DisableIfDistanceIsLessThan = Defaults.AgentInfo.AgentRadius * 3 -- If the distance to the target is less than this, it will not check the floor
 
 
 -- == Hooks Configuration == --

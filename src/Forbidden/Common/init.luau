@@ -6,5 +6,5 @@ return {
     GetForbiddenTemporaryWorkspaceFolder = storage.GetForbiddenTemporaryWorkspaceFolder,
     GetForbiddenWSPartsFolder = storage.GetForbiddenWSPartsFolder,
     GetBasePart = typehelp.GetBasePart,
-    GetDistanceFromNPCToInstance = typehelp.GetDistanceFromNPCToInstance
+    GetDistanceFromNPCToTarget = typehelp.GetDistanceFromNPCToTarget
 }

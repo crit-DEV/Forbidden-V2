@@ -55,11 +55,14 @@ API.CanUseDirectMoveTo = function(NPC: Instance, Target: Instance): boolean
 
     if Config.DirectMoveTo.DoRaycast then
         -- TODO:// update math module and settings to be config handler based ?
-        if not CMathRequests.CanMoveToRaycast(NPC, Target) then ForbiddenDebugging.Log(NPC, "Failed check to target."); return false end
+        -- TODO:// add check to arms & multiple raycast hitboxes.
+        if not CMathRequests.CanMoveToRaycast(NPC, Target) then ForbiddenDebugging.Log(NPC, "Failed direct raycast check to target."); return false end
     end
 
     if Config.DirectMoveTo.CheckFloor.Enabled then
-        if not CMathRequests.CanCrossFloorRaycast(NPC, Target) then ForbiddenDebugging.Log(NPC, "Failed cross floor check to target."); return false end
+        if Common.GetDistanceFromNPCToTarget(NPC, Target) > Config.DirectMoveTo.CheckFloor.DisableIfDistanceIsLessThan then
+            if not CMathRequests.CanCrossFloorRaycast(NPC, Target) then ForbiddenDebugging.Log(NPC, "Failed cross floor check to target."); return false end
+        end
     end
 
     return true

@@ -17,9 +17,10 @@ Developer History
 -- == Forbidden Modules & Architecture == --
 local root  = script.Parent.Parent.Parent
 local AI    = root.AI
-local AIT               = require(AI.Types)
-local ConfigHandler     = require(AI.ConfigHandler)
-local Defaults          = require(AI.ConfigHandler.Defaults)
+local AIT                   = require(AI.Types)
+local ConfigHandler         = require(AI.ConfigHandler)
+local Defaults              = require(AI.ConfigHandler.Defaults)
+local PathfindingProcessor  = require(AI.PathfindingProcessor)
 
 
 -- == Initialization == --
@@ -60,8 +61,17 @@ API.NodeTableExpander = function(nodes: any): {BasePart}
     return final
 end
 
-API.CheckPath = function(Node1: BasePart, Node2: BasePart): boolean
-    -- TODO
+API.CheckPath = function(NPC: Instance?, Node1: BasePart, Node2: BasePart): boolean
+    local config: AIT.Config
+    
+    if NPC ~= nil then
+        config = ConfigHandler.GetActiveConfig(NPC)
+    end
+    if NPC == nil then
+        config = Defaults
+    end
+
+    return PathfindingProcessor.RawCompute(Node1.CFrame.Position, Node2.CFrame.Position, config.AgentInfo) ~= nil
 end
 
 -- == API Functions == --

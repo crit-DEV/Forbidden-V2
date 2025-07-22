@@ -45,6 +45,7 @@ type DirectMoveTo = {
 
 type CheckFloor = {
     Enabled: boolean,
+    DisableIfDistanceIsLessThan: number, -- if the distance to the target is less than this, it will not check the floor
     BlockDirectMoveToTimer: number, -- if the floor is missing, block another attempt for `x` seconds.
     CheckFrequencyTimer: number,
     RaycastSpacing: number,
@@ -104,7 +105,8 @@ type Tracking = {
 type BaseDynamicRetrackTimerConfig = {
     MinTimer: number,
     MaxTimer: number,
-    GetRetrackTimeFunction: (NPC: Instance, Target: Instance) -> (number)
+    GetRetrackTimeFunction: (NPC: Instance, Target: any) -> (number),
+    ShouldRetrackFunction: (NPC: Instance, Target: any) -> (boolean)
 }
 
 return {}
