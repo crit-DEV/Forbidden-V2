@@ -74,7 +74,8 @@ Defaults.Tracking.DynamicRetrack.MoveTo = {} :: any
 Defaults.Tracking.DynamicRetrack.MoveTo.MinTimer = 0 -- minimum retrack time if last op was a DirectMoveTo
 Defaults.Tracking.DynamicRetrack.MoveTo.MaxTimer = 1 -- maximum retrack time if last op was a DirectMoveTo
 Defaults.Tracking.DynamicRetrack.MoveTo.GetRetrackTimeFunction = function(NPC: Instance, Target: Instance): number
-    local timer = Common.GetDistanceFromNPCToTarget(NPC, Target) / 40 - 0.5 -- basically ranges from 0 to 0 for first 20studs, and 0 -> 0.5 after 
+    local timer = math.max(Common.GetDistanceFromNPCToTarget(NPC, Target) - 20, 0) / 40 -- basically is 0s (immediate) for first 20studs, and scales at 1s per 40studs after
+    -- print(timer) 
     return timer
 
     -- another function handles the clamping of the timer, so this function can return any value.
@@ -86,10 +87,10 @@ end
 
 Defaults.Tracking.DynamicRetrack.Pathfind = {} :: any
 Defaults.Tracking.DynamicRetrack.Pathfind.MinTimer = 0.5 -- minimum retrack time if last op was a pathfind
-Defaults.Tracking.DynamicRetrack.Pathfind.MaxTimer = 5 -- maximum retrack time if last op was a pathfind
 Defaults.Tracking.DynamicRetrack.Pathfind.MaxTimer = 3 -- maximum retrack time if last op was a pathfind
 Defaults.Tracking.DynamicRetrack.Pathfind.GetRetrackTimeFunction = function(NPC: Instance, Target: Instance): number
-    local timer = Defaults.Tracking.DynamicRetrack.Pathfind.MinTimer + Common.GetDistanceFromNPCToTarget(NPC, Target) / 40
+    local timer = Common.GetDistanceFromNPCToTarget(NPC, Target) / 80 -- basically is 1s per 80 studs
+    -- print(timer)
     return timer
 end
 
@@ -106,7 +107,7 @@ end
 -- == Direct MoveTo Configuration == --
 Defaults.DirectMoveTo = {} :: any
 Defaults.DirectMoveTo.Enabled               = true
-Defaults.DirectMoveTo.ActivationDistance    = 40    -- If the distance between the NPC & Target is less than this setting, it will be possible to use DirectMoveTo.
+Defaults.DirectMoveTo.ActivationDistance    = 60    -- If the distance between the NPC & Target is less than this setting, it will be possible to use DirectMoveTo.
 Defaults.DirectMoveTo.HeightLimit           = 5     -- If the difference between the Y position of the NPC & Target is less than this setting, it will be possible to use DirectMoveTo
 Defaults.DirectMoveTo.JumpHandler           = true  -- Allows Forbidden to make use of the JumpHandler when using DirectMoveTo
 Defaults.DirectMoveTo.DoRaycast             = true  -- Enables raycasting that must return a positive result ot use the DirectMoveTo method.

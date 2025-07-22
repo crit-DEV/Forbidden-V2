@@ -124,7 +124,8 @@ API.GetDistanceFromNPCToTarget = function(NPC: Instance, Target: Instance): numb
     if NPCActual == nil then error("NPC Actual nil") end
     if TargetActual == nil then error("Target Actual nil") end
 
-    return (NPCActual.CFrame.Position - TargetActual.CFrame.Position).Magnitude
+    local dist = (NPCActual.CFrame.Position - TargetActual.CFrame.Position).Magnitude
+    return dist
 end
 
 return API

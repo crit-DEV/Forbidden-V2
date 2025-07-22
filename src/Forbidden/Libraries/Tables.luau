@@ -31,18 +31,33 @@ TablesLibrary.DeepCopyPaste = function(Overwriter, Target)
     setmetatable(Target, getmetatable(Overwriter))
 end
 
-TablesLibrary.LockKeyInTable = function <T>(Target, Key: string)
-    -- Lock a key in the table, so it cannot be modified
-    setmetatable(Target, {
-        __index = Target,
-        __newindex = function(tab, key, value)
-            if key == Key and tab[key] ~= value then -- TODO:// should we keep the check if same val?
-                error(`Attempt to modify read-only field '{key}' in Table`, 2)
-            end
-            rawset(tab, key, value)
-        end,
-    })
+-- recoded to be "safer" from some random guys "insight"
+-- no idea why, but i understand it was related to too many metatable levels
+function TablesLibrary.LockKeyInTable(tbl, keyToLock)
+    local mt = getmetatable(tbl) or {}
+    local originalIndex = mt.__index
+
+    mt.__index = function(t, key)
+        if key == keyToLock then
+            error(`Attempt to read locked key: {key}`)
+        elseif type(originalIndex) == "function" then
+            return originalIndex(t, key)
+        elseif type(originalIndex) == "table" then
+            return originalIndex[key]
+        end
+    end
+
+    mt.__newindex = function(t, key, value)
+        if key == keyToLock then
+            error(`Attempt to modify locked key: {key}`)
+        else
+            rawset(t, key, value)
+        end
+    end
+
+    setmetatable(tbl, mt)
 end
+
 
 TablesLibrary.RemoveMetatable = function <T>(Target)
     -- Remove the lock on a key in the table

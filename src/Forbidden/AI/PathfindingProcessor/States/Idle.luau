@@ -36,9 +36,8 @@ local Idle = RBLXStateMachineLib.State.new("Idle") -- The name of our state
 
 
 -- == Assisting Functions == --
-local function StopNPCByStopType(data)
+local function StopNPCByStopType(config: AIT.Config)
     -- Key: LastPathfind, Value: {CurrentIndex: number, Waypoints: {PathWaypoint} }
-    local config: AIT.Config = data.Config
     
 
     -- Same Position

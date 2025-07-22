@@ -123,7 +123,7 @@ function Tracking:OnHeartbeat(data) -- Called every heartbeat
     
     -- Is it time to recall?
     local NextRecallTime = data.LastTrackingRecall + RetrackingOptimization.GetDynamicRetrackTimer(NPC, data.Target, data.RecallType)
-    -- print(NextRecallTime - os.clock(), " seconds until next recall." )
+    -- print(string.format("%.3f seconds until next recall.", NextRecallTime - os.clock()))
     if os.clock() < NextRecallTime then return end -- not time to recall yet.
     if not RetrackingOptimization.ShouldRetrack(NPC, data.Target, data.RecallType) then return end
     
