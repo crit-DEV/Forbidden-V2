@@ -75,7 +75,7 @@ API.InitializeStateMachine = function(NPC: Instance)
     thisStateMachine.StateChanged:Connect(function()
         local prevState = thisStateMachine:GetPreviousState()
         local newState = thisStateMachine:GetCurrentState()
-        ForbiddenDebugging.Log(NPC, "State changed from", prevState, "to", newState)
+        ForbiddenDebugging.Log(NPC, "State Changed: [", prevState, "] -> [", newState, "]")
     end)
     
     thisStateMachine.Data.StateMachine = thisStateMachine

@@ -82,7 +82,9 @@ local function LoopThroughWaypoints(NPC: Instance)
             return string.format("%.2f", number)
         end
 
-        ForbiddenDebugging.Log(NPC, "Moving to waypoint: ", "(", formatString(wp.Position.X), ", ", formatString(wp.Position.Y), ", ", formatString(wp.Position.Z), ") ", " with action: ", wp.Action, " and label: ", wp.Label)
+        if config.Debugging.MovingToWaypoint then
+            ForbiddenDebugging.Log(NPC, "Moving to waypoint: ", "(", formatString(wp.Position.X), ", ", formatString(wp.Position.Y), ", ", formatString(wp.Position.Z), ") ", " with action: ", wp.Action, " and label: ", wp.Label)
+        end
 
         -- If it is a pathfinding link (code after the if statement is skipped if so)
         if wp.Action == Enum.PathWaypointAction.Custom then
