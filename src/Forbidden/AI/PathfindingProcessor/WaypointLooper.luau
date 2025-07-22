@@ -19,6 +19,7 @@ local AIT                   = require(ForbiddenDir.AI.Types)
 -- == Forbidden Modules & Architecture == --
 local ConfigHandler         = require(ForbiddenDir.AI.ConfigHandler)
 local WaypointVisualizer    = require(ForbiddenDir.AI.Visualization.WaypointsVisualization)
+local ForbiddenDebugging    = require(ForbiddenDir.AI.Debugging)
 
 
 -- == Initialization == --
@@ -76,6 +77,12 @@ local function LoopThroughWaypoints(NPC: Instance)
         -- Verify waypoint
         local wp = theseWaypoints[i]
         if not wp then break end
+
+        local function formatString(number: number)
+            return string.format("%.2f", number)
+        end
+
+        ForbiddenDebugging.Log(NPC, "Moving to waypoint: ", "(", formatString(wp.Position.X), ", ", formatString(wp.Position.Y), ", ", formatString(wp.Position.Z), ") ", " with action: ", wp.Action, " and label: ", wp.Label)
 
         -- If it is a pathfinding link (code after the if statement is skipped if so)
         if wp.Action == Enum.PathWaypointAction.Custom then

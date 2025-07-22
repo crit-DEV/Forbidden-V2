@@ -10,11 +10,12 @@ Developer History
 
 -- == Forbidden Modules & Architecture == --
 local root = script.Parent.Parent
-local ConfigHandler = require(root.AI.ConfigHandler)
-local Common        = require(root.Common)
-local MathModule    = require(root.Math)
-local CMathRequests = require(root.AI.CommonMathRequests)
-local ForbiddenDebugging = require(root.AI.Debugging)
+local ConfigHandler             = require(root.AI.ConfigHandler)
+local Common                    = require(root.Common)
+local MathModule                = require(root.Math)
+local CMathRequests             = require(root.AI.CommonMathRequests)
+local ForbiddenDebugging        = require(root.AI.Debugging)
+local PositionalOptimization    = require(root.AI.PositionalOptimization)
 
 
 -- == External Types == --
@@ -67,6 +68,30 @@ API.CanUseDirectMoveTo = function(NPC: Instance, Target: Instance): boolean
 
     return true
 
+end
+
+API.GetDirectMoveToPosition = function(NPC: Instance, Target: Instance): Vector3
+    
+    -- validation
+    local npc_part: BasePart? = Common.GetBasePart(NPC)
+    if npc_part == nil then error("NO NPC BASE") end
+
+    local target_part: BasePart? = Common.GetBasePart(Target, true, NPC)
+    if target_part == nil then error("NO TARGET BASE") end
+
+    -- get pos
+    local npc_pos = npc_part.CFrame.Position
+
+    -- get the config
+    local config: AIT.Config = ConfigHandler.GetActiveConfig(NPC)
+
+    -- predict the movement with a magnitude as follows.
+    local predicted_target_pos = PositionalOptimization.PredictMovement(target_part, config.Tracking.PredictionMagnitude)
+
+    -- offset from the predicted point of the target toward the NPC
+    local goToPos = PositionalOptimization.GetCollinearTargetPositionOffset(predicted_target_pos, npc_pos, config.Tracking.CollinearTargetPositionOffset)
+    
+    return goToPos
 end
 
 return API

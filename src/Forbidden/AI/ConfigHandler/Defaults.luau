@@ -62,8 +62,8 @@ Defaults.Visualization.TetherColor          = Color3.fromRGB(255, 255, 0) -- (YE
 -- == Tracking Configuration == --
 Defaults.Tracking = {} :: any
 Defaults.Tracking.Enabled                           = false -- Master control for tracking
-Defaults.Tracking.CollinearTargetPositionOffset     = 1 -- If set, the NPC will offset the target's position by this amount when calculating the path (only when using Moveto ops)
-Defaults.Tracking.PredictionMagnitude               = 1 -- If true, the NPC will predict the target's movement and adjust its path accordingly
+Defaults.Tracking.CollinearTargetPositionOffset     = 0.5 -- If set, the NPC will offset the target's position by this amount when calculating the path (only when using Moveto ops)
+Defaults.Tracking.PredictionMagnitude               = 0.25 -- If true, the NPC will predict the target's movement and adjust its path accordingly
 Defaults.Tracking.SkipToWaypoint                    = 3 -- skips to x waypoint, if set to 1 (or below), it will not skip any waypoints (will always track to last waypoint)      
 
 -- == Dynamic Retrack Configuration == --
@@ -159,9 +159,10 @@ Defaults.Hooks.StopAcknowledged = nullbind
 
 -- == Visualization Configuration == --
 Defaults.Debugging = {} :: any
-Defaults.Debugging.Enabled = false -- Master control for debugging
-Defaults.Debugging.OutputToConsole = true
-Defaults.Debugging.StateTransitioning = true
+Defaults.Debugging.Enabled              = false -- Master control for debugging
+Defaults.Debugging.OutputToConsole      = true
+Defaults.Debugging.StateTransitioning   = true
+Defaults.Debugging.MovingToWaypoint     = false -- if true, the AI will log when it is moving to a waypoint
 -- Defaults.Debugging.LogToScript = true -- prints all outputs from Forbidden AI to a file.
 
 return Defaults

@@ -69,6 +69,8 @@ end
 ]=]
 API.GetCollinearTargetPositionOffset = function(Origin: Vector3, Target: Vector3, Offset: number): Vector3
     local delta: Vector3 = Target - Origin
+    if Offset == 0 then return Origin end
+
     if delta.Magnitude == 0 then
         return Origin
     end
@@ -79,3 +81,28 @@ API.GetCollinearTargetPositionOffset = function(Origin: Vector3, Target: Vector3
 
     return Origin + (delta.Unit * Offset)
 end
+
+API.PredictMovement = function(target_part: BasePart, PredictionMagnitude: number): Vector3
+
+    local target_pos = target_part.CFrame.Position
+    if PredictionMagnitude <= 0 then return target_pos end
+
+    if target_part.AssemblyLinearVelocity.Magnitude < 0.1 then
+            -- If the target is not moving, then we can just use the target position.
+        return target_pos
+    end
+
+    local tR_Velo_Corrected = Vector3.new(target_part.AssemblyLinearVelocity.X, 0, target_part.AssemblyLinearVelocity.Z).Unit
+
+    -- source: https://devforum.roblox.com/t/how-do-i-check-if-a-value-is-nan/1262807/2
+    -- source: https://stackoverflow.com/questions/37753694/lua-check-if-a-number-value-is-nan
+    if tR_Velo_Corrected.X ~= tR_Velo_Corrected.X then -- nan check
+        return target_pos    
+    end
+
+    target_pos = target_pos + tR_Velo_Corrected * PredictionMagnitude
+
+    return target_pos
+end
+
+return API

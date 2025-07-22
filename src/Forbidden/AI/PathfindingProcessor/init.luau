@@ -169,7 +169,7 @@ API.ComputePath = function(NPC: Instance, Target: any): {PathWaypoint}?
     if DirectMoveTo.CanUseDirectMoveTo(NPC, Target) then
 		if Paths[NPC] == nil then Paths[NPC] = {} :: any end
         Paths[NPC].UsingPathfind = false
-        return {PathWaypoint.new(TargetActual.CFrame.Position, Enum.PathWaypointAction.Walk, "ForbiddenDirectMoveTo")}
+        return {PathWaypoint.new(DirectMoveTo.GetDirectMoveToPosition(NPC, Target), Enum.PathWaypointAction.Walk, "ForbiddenDirectMoveTo")}
     end
 
     -- Get the path

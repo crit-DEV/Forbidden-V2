@@ -79,6 +79,7 @@ type Debugging = {
     Enabled: boolean,
     StateTransitioning: boolean,
     OutputToConsole: boolean,
+    MovingToWaypoint: boolean, -- if true, the AI will log when it is moving to a waypoint
     -- LogToScript: boolean
 }
 
