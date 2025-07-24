@@ -16,7 +16,7 @@ export type StopType = TConfig.StopType
 --     Processing = 1, -- a request is being processed
 --     Processed = 2, -- a request has been processed
 -- })
-export type ProcessingState = "Requested" | "Processing" | "Processed"
+export type ProcessingState = "Requested" | "Processing" | "Processed" | string
 
 export type RequestPriority = TRequestPriority.RequestPriority
 

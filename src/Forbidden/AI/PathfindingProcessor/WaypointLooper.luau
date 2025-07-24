@@ -163,6 +163,7 @@ end
 
 API.EndContinuity = function(NPC: Instance)
     local thisCont = ActiveContinuities[NPC]
+    if thisCont == nil then return end
 
     thisCont.RequestId = ActiveContinuities[NPC].RequestId + 1
     thisCont.Target = nil

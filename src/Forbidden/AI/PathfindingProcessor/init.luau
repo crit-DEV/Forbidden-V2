@@ -21,9 +21,9 @@ local RBLXStateMachineLib = require(rs.Forbidden.Packages.robloxstatemachine)
 -- == Forbidden Modules & Architecture == --
 local root          = script.Parent.Parent
 local ConfigHandler = require(root.AI.ConfigHandler)
-local MessageQueue  = require(root.AI.MessageQueue)
+-- local MessageQueue  = require(root.AI.MessageQueue)
 local DirectMoveTo  = require(root.AI.DirectMoveTo)
-local MathModule    = require(root.Math)
+-- local MathModule    = require(root.Math)
 local Common        = require(root.Common)
 local ForbiddenDebugging = require(root.AI.Debugging)
 

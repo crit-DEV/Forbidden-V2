@@ -53,7 +53,7 @@ Defaults.AgentInfo.AgentHeight      = 5
 Defaults.AgentInfo.AgentCanJump     = true
 Defaults.AgentInfo.AgentCanClimb    = false
 Defaults.AgentInfo.WaypointSpacing  = 4
-Defaults.AgentInfo.Costs            = {} -- {Water = 20, myPFLink = 10, etc...}
+Defaults.AgentInfo.Cost            = {} -- {Water = 20, myPFLink = 10, etc...}
 
 
 -- == Visualization Configuration == --

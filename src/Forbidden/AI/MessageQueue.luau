@@ -29,7 +29,8 @@ type StopRequest = {
     ["Time"]: number,
     ["Yields"]: boolean, 
     ["Priority"]: number, -- Compares with the StartRequest, if greater, it will be processed first. (only matters if the time is the same)
-    ["ProcessingState"]: AIT.ProcessingState
+    ["ProcessingState"]: AIT.ProcessingState,
+    ["FinishedSignal"]: BindableEvent?
 }
 
 type StartRequest = {
@@ -38,7 +39,8 @@ type StartRequest = {
     ["Yields"]: boolean,
     ["Time"]: number,
     ["Priority"]: number, -- Compares with the EndRequest, if greater, it will be processed first (only matters if the time is the same)
-    ["ProcessingState"]: AIT.ProcessingState
+    ["ProcessingState"]: AIT.ProcessingState,
+    ["FinishedSignal"]: BindableEvent?
 }
 
 type MQ_Singleton = {
@@ -73,14 +75,14 @@ local function InitializeMQ(NPC: Instance)
             Yields = false,
             Time = os.clock(),
             Priority = AIT.RequestPriority.ConvertPriorityToNumber("DefaultStart"), -- default priority
-            ProcessingState = "Requested"
+            ProcessingState = "Processed"
         },
         NewestStopRequest = {
             RequestType = "Stop",
             Time = os.clock(),
             Yields = false,
             Priority = AIT.RequestPriority.ConvertPriorityToNumber("DefaultStop"), -- default priority
-            ProcessingState = "Requested"
+            ProcessingState = "Processed"
         },
         LastSuccessfulPath = {time = os.clock(), wps = {}},
         ActiveRequest = nil,
@@ -232,7 +234,7 @@ API.IsProcessing = function(NPC: Instance): boolean
     return API.IsProcessingStartRequest(NPC) or API.IsProcessingEndRequest(NPC)
 end
 
-API.SendStartMessage = function(NPC: Instance, Target: any, Yields: boolean?, Priority: AIT.RequestPriority? | number?)
+API.SendStartMessage = function(NPC: Instance, Target: any, Yields: boolean?, Priority: AIT.RequestPriority? | number?): RBXScriptSignal
     local MQ_Singleton = GetMQSingleton(NPC)
 
     local prio: number = AIT.RequestPriority.ConvertPriorityToNumber("DefaultStart")
@@ -245,17 +247,31 @@ API.SendStartMessage = function(NPC: Instance, Target: any, Yields: boolean?, Pr
         if MQ_Singleton.NewestStartRequest.Priority > prio then return end -- if non-processed req has greater prio then ignore new call
     end
 
-    MQ_Singleton.NewestStartRequest.Time = os.clock()
-    MQ_Singleton.NewestStartRequest.Target = Target
-    MQ_Singleton.NewestStartRequest.Yields = Yields or false
-    MQ_Singleton.NewestStartRequest.Priority = prio
-    MQ_Singleton.NewestStartRequest.ProcessingState = "Requested"
+    -- old: worked
+    -- MQ_Singleton.NewestStartRequest.Time = os.clock()
+    -- MQ_Singleton.NewestStartRequest.Target = Target
+    -- MQ_Singleton.NewestStartRequest.Yields = Yields or false
+    -- MQ_Singleton.NewestStartRequest.Priority = prio
+    -- MQ_Singleton.NewestStartRequest.ProcessingState = "Requested"
 
-    return
+    -- new: need it for BindableEvents
+    MQ_Singleton.NewestStartRequest = {
+        Time = os.clock(),
+        Target = Target,
+        Yields = Yields or false,
+        Priority = prio,
+        ProcessingState = "Requested",
+    }
+
+    if Yields then
+        MQ_Singleton.NewestStartRequest.FinishedSignal = Instance.new("BindableEvent")
+    end
+
+    return MQ_Singleton.NewestStartRequest.FinishedSignal.Event
 end
 
 
-API.SendStopMessage = function(NPC: Instance, Yields: boolean?, Priority: AIT.RequestPriority? | number?)
+API.SendStopMessage = function(NPC: Instance, Yields: boolean?, Priority: AIT.RequestPriority? | number?): RBXScriptSignal
     local MQ_Singleton = GetMQSingleton(NPC)
 
     local prio: number = AIT.RequestPriority.ConvertPriorityToNumber("DefaultStop")
@@ -268,12 +284,18 @@ API.SendStopMessage = function(NPC: Instance, Yields: boolean?, Priority: AIT.Re
         if MQ_Singleton.NewestStopRequest.Priority > prio then return end -- if non-processed req has greater prio then ignore new call
     end
 
-    MQ_Singleton.NewestStopRequest.Time = os.clock()
-    MQ_Singleton.NewestStopRequest.Yields = Yields or false
-    MQ_Singleton.NewestStopRequest.Priority = prio
-    MQ_Singleton.NewestStopRequest.ProcessingState = "Requested"
+    MQ_Singleton.NewestStopRequest = {
+        Time = os.clock(),
+        Yields = Yields or false,
+        Priority = prio,
+        ProcessingState = "Requested",
+    }
 
-    return
+    if Yields then
+        MQ_Singleton.NewestStopRequest.FinishedSignal = Instance.new("BindableEvent")
+    end
+
+    return MQ_Singleton.NewestStopRequest.FinishedSignal.Event
 end
 
 return API

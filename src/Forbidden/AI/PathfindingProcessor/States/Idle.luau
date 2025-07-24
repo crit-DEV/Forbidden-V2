@@ -119,7 +119,13 @@ function Idle:OnEnter(data) -- Called whenever the state changes into "Blue"
 
     ForbiddenDebugging.Log(data.NPC, "Idle: " .. data.NPC:GetFullName())
     -- Could also write: self.Data.part.Color
-    
+
+    -- Finished Signal
+    -- send old signal finished
+    if data.Request and data.Request.FinishedSignal ~= nil then 
+        data.Request.FinishedSignal:Fire()
+    end
+
     -- If another request, then continue.
     NewRequestHandler(data)
 end

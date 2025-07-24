@@ -33,7 +33,10 @@ API.SmartPathfind = function(NPC: Instance, Target: any, Yields: boolean?, Prior
     Yields = Yields or false
     Priority = Priority or "DefaultStart"
     PathfindingProcessor.InitializeStateMachine(NPC) -- will return if already initialized
-    MessageQueue.SendStartMessage(NPC, Target, Yields, Priority)
+    local signal = MessageQueue.SendStartMessage(NPC, Target, Yields, Priority)
+    if Yields and signal then
+        signal:Wait()
+    end
 end
 
 
@@ -70,7 +73,10 @@ end
 API.Stop = function(NPC: Instance, Yields: boolean?, Priority: RequestPriority? | number?)
     Yields = Yields or false
     Priority = Priority or "DefaultStop"
-    MessageQueue.SendStopMessage(NPC, Yields, Priority)
+    local signal = MessageQueue.SendStopMessage(NPC, Yields, Priority)
+    if Yields and signal then
+        signal:Wait()
+    end
 end
 
 

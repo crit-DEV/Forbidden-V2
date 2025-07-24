@@ -49,7 +49,7 @@ local function NewRequestHandler(data)
     data.StateMachine:ChangeState("Idle")
 
 end
-
+ 
 -- == Methods == --
 function Pathing:OnInit() -- This gets called as soon as the state machine is created
     -- state machine created

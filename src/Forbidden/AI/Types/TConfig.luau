@@ -98,7 +98,7 @@ export type AgentInfo = {
     AgentCanJump: boolean,
     AgentCanClimb: boolean,
     WaypointSpacing: number,
-    Costs: {[string]: number}
+    Cost: {[string]: number}
 }
 
 type Tracking = {

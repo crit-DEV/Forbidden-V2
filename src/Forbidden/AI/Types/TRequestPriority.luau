@@ -1,4 +1,4 @@
-export type RequestPriority = "Low" | "DefaultStart" | "Normal" | "DefaultStop" | "High" | "Critical"
+export type RequestPriority = "Low" | "DefaultStart" | "Normal" | "DefaultStop" | "High" | "Critical" | string
 
 local API = {}
 
