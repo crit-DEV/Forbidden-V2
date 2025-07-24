@@ -234,7 +234,7 @@ API.IsProcessing = function(NPC: Instance): boolean
     return API.IsProcessingStartRequest(NPC) or API.IsProcessingEndRequest(NPC)
 end
 
-API.SendStartMessage = function(NPC: Instance, Target: any, Yields: boolean?, Priority: AIT.RequestPriority? | number?): RBXScriptSignal
+API.SendStartMessage = function(NPC: Instance, Target: any, Yields: boolean?, Priority: AIT.RequestPriority? | number?): RBXScriptSignal?
     local MQ_Singleton = GetMQSingleton(NPC)
 
     local prio: number = AIT.RequestPriority.ConvertPriorityToNumber("DefaultStart")
@@ -267,11 +267,15 @@ API.SendStartMessage = function(NPC: Instance, Target: any, Yields: boolean?, Pr
         MQ_Singleton.NewestStartRequest.FinishedSignal = Instance.new("BindableEvent")
     end
 
+    if not MQ_Singleton.NewestStartRequest.FinishedSignal then
+        return nil
+    end
+
     return MQ_Singleton.NewestStartRequest.FinishedSignal.Event
 end
 
 
-API.SendStopMessage = function(NPC: Instance, Yields: boolean?, Priority: AIT.RequestPriority? | number?): RBXScriptSignal
+API.SendStopMessage = function(NPC: Instance, Yields: boolean?, Priority: AIT.RequestPriority? | number?): RBXScriptSignal?
     local MQ_Singleton = GetMQSingleton(NPC)
 
     local prio: number = AIT.RequestPriority.ConvertPriorityToNumber("DefaultStop")
@@ -293,6 +297,10 @@ API.SendStopMessage = function(NPC: Instance, Yields: boolean?, Priority: AIT.Re
 
     if Yields then
         MQ_Singleton.NewestStopRequest.FinishedSignal = Instance.new("BindableEvent")
+    end
+
+    if not MQ_Singleton.NewestStopRequest.FinishedSignal then
+        return nil
     end
 
     return MQ_Singleton.NewestStopRequest.FinishedSignal.Event
