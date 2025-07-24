@@ -45,7 +45,7 @@ API.Log = function(NPC, ...)
 
         local temp = nil
         local cbt_exists = ConversionByType[val_type]
-        if cbt_exists ~= nil then temp = cbt_exists() end 
+        if cbt_exists ~= nil then temp = cbt_exists(v) end 
     
         if temp then this_val_msg = temp end
         if not temp then this_val_msg = tostring(v) end
@@ -54,6 +54,14 @@ API.Log = function(NPC, ...)
     end
 
     print(msg)
+end
+
+API.LogWithVerbosity = function(NPC: Instance, Verbosity: number, ...)
+    local ac = ConfigHandler.GetActiveConfig(NPC)
+    if not ac.Debugging.Enabled then return end
+
+    if ac.Debugging.Verbosity < Verbosity then return end
+    API.Log(NPC, ...)
 end
 
 -- Saw this in a python function on a short, seemed really cool.

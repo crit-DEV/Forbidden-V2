@@ -25,6 +25,7 @@ local MessageQueue          = require(ForbiddenDir.AI.MessageQueue)
 local PathfindingProcessor  = require(ForbiddenDir.AI.PathfindingProcessor)
 local WaypointLooper        = require(ForbiddenDir.AI.PathfindingProcessor.WaypointLooper)
 local Common                = require(ForbiddenDir.Common)
+local DirectMoveTo          = require(ForbiddenDir.AI.DirectMoveTo)
 
 
 -- == Forbidden Types == --
@@ -56,9 +57,12 @@ end
 
 function Pathing:OnEnter(data) -- Called whenever the state changes into "Blue"
 
+
+    data.StateMachine:ChangeData("Waypoints", {})
+
     if not data.NPC then error("No NPC in data!") end
     
-    print("Pathing: " .. data.NPC:GetFullName())
+    ForbiddenDebugging.Log(data.NPC, "Pathing: " .. data.NPC:GetFullName())
     -- Could also write: self.Data.part.Color
 
     -- Compute the path to the target.
@@ -93,6 +97,18 @@ end
 
 function Pathing:OnHeartbeat(data) -- Called every heartbeat
     NewRequestHandler(data)
+    local config: AIT.Config = data.Config
+    local target: Instance? = data.Target
+    if not target then
+        ForbiddenDebugging.Log(config.NPC, "No target set for Pathing state, cannot continue pathing.")
+        return
+    end
+
+    if config.DirectMoveTo.JumpHandler.Enabled and not config.DirectMoveTo.TrackingOnly then
+        if #data.Waypoints > 0 and data.Waypoints[1].Label == "ForbiddenDirectMoveTo" then
+            DirectMoveTo.DoJumpTick(config.NPC, target)
+        end
+    end
 end
 
 function Pathing:OnLeave() -- Called whenever the state is left even if target gets destroyed

@@ -25,6 +25,7 @@ local MessageQueue           = require(ForbiddenDir.AI.MessageQueue)
 local PathfindingProcessor   = require(ForbiddenDir.AI.PathfindingProcessor)
 local WaypointLooper         = require(ForbiddenDir.AI.PathfindingProcessor.WaypointLooper)
 local RetrackingOptimization = require(ForbiddenDir.AI.RetrackingOptimization) 
+local DirectMoveTo           = require(ForbiddenDir.AI.DirectMoveTo)
 local Common                 = require(ForbiddenDir.Common)
 
 
@@ -100,6 +101,8 @@ function Tracking:OnEnter(data) -- Called whenever the state changes into "Blue"
     ForbiddenDebugging.Log(data.NPC, "Tracking: " .. data.NPC:GetFullName())
     -- Could also write: data.part.Color
     data.StateMachine:ChangeData("LastTrackingRecall", 0)
+    data.StateMachine:ChangeData("LastTargetPosition", Vector3.new(math.huge, math.huge, math.huge))
+    data.StateMachine:ChangeData("Waypoints", {})
 end
 
 function Tracking:OnHeartbeat(data) -- Called every heartbeat
@@ -108,6 +111,7 @@ function Tracking:OnHeartbeat(data) -- Called every heartbeat
     local config: AIT.Config = data.Config
     local NPC: Instance = config.NPC
 
+    -- Validate NPC
     local NPCHuman: Humanoid? = NPC:FindFirstChildOfClass("Humanoid")
     if NPC == nil or NPCHuman == nil or NPCHuman.Health == 0 then
         ForbiddenDebugging.Log(NPC, "NPC is nil, has no Humanoid, or is dead in Tracking state, cannot continue.")
@@ -115,28 +119,68 @@ function Tracking:OnHeartbeat(data) -- Called every heartbeat
         return
     end
 
-    if data.Target == nil or Common.GetBasePart(data.Target, true, NPC) == nil then
+    -- Validate Target
+    if data.Target == nil then
         ForbiddenDebugging.Log(NPC, "Target is nil or invalid in Tracking state, cannot continue.")
         data.StateMachine:ChangeState("Idle")
         return
     end
-    
+
+    local TargetBasePart = Common.GetBasePart(data.Target, true, NPC)
+    if TargetBasePart == nil then
+        ForbiddenDebugging.Log(NPC, "Target is nil or invalid in Tracking state, cannot continue.")
+        data.StateMachine:ChangeState("Idle")
+        return
+    end
+
+    -- Jump Handling
+    if config.DirectMoveTo.JumpHandler.Enabled and #data.Waypoints > 0 and data.Waypoints[1].Label == "ForbiddenDirectMoveTo" then
+        DirectMoveTo.DoJumpTick(config.NPC, data.Target)
+    end
+
+
+    -- The following 3 blockers below block the current attempt to retrack if any of the following conditions are true:
+        -- A timer since the last recall has not been exceeded.
+        -- The target has not exceeded a distance moved requirement from when the last retrack occured.
+        -- The user has supplied a custom function which determined the AI should not retrack.
+
+    -- RECALL TIMER
     -- Is it time to recall?
     local NextRecallTime = data.LastTrackingRecall + RetrackingOptimization.GetDynamicRetrackTimer(NPC, data.Target, data.RecallType)
     -- print(string.format("%.3f seconds until next recall.", NextRecallTime - os.clock()))
     if os.clock() < NextRecallTime then return end -- not time to recall yet.
-    if not RetrackingOptimization.ShouldRetrack(NPC, data.Target, data.RecallType) then return end
     
-    data.StateMachine:ChangeData("LastTrackingRecall", os.clock())
+    -- RECALL DISTANCE BLOCKER
+    local distanceMoved = (data.LastTargetPosition - TargetBasePart.CFrame.Position).Magnitude
+    if distanceMoved < config.Tracking.DistanceMovedThreshold then
+        ForbiddenDebugging.LogWithVerbosity(NPC, 6, string.format("Distance moved requirement not exceeded. (%.3f)", distanceMoved))
+        return
+    end
+    
+    -- USER RECALL BLOCKER
+    -- Is the recall request blocked?
+    if not RetrackingOptimization.ShouldRetrack(NPC, data.Target, data.RecallType) then return end
 
+
+    -- Change timer blocker data here
+    -- not last known pos as if the pf fails, we still want it to try?
+        -- may change / add setting. (@rman501)
+    data.StateMachine:ChangeData("LastTrackingRecall", os.clock())
+    
+    -- Recall pathfind
     ForbiddenDebugging.Log("Recalling!")
     local success = Tracking:Pathfind(data)
     if not success then ForbiddenDebugging.Log(NPC, "Recall failed! Target: ", data.Target) end
+    
+    -- Change distance blocker data here
+    data.StateMachine:ChangeData("LastTargetPosition", TargetBasePart.CFrame.Position)
+    
 end
 
 function Tracking:OnLeave(data) -- Called whenever the state is left even if target gets destroyed
     local config: AIT.Config = data.Config
     ForbiddenDebugging.Log(config.NPC, "Leaving Tracking State for ", config.NPC:GetFullName())
+    -- data reset elsewhere
 end
 
 return Tracking

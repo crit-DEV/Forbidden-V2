@@ -46,7 +46,8 @@ local StateMachines: {
                 Config: AIT.Config
             },
             Name: string
-        }
+        },
+        Destroy: (self: any) -> ()
     }
 } = {}
 local BlockedIndices: {[Instance]: {number}} = {}
@@ -55,6 +56,9 @@ local Paths: {[Instance]: {AgentInfo: AIT.AgentInfo, PathObject: Path, UsingPath
 -- == API Functions == --
 API.InitializeStateMachine = function(NPC: Instance)
     if StateMachines[NPC] then return end
+
+    local NPCHuman = NPC:FindFirstChildOfClass("Humanoid")
+    if NPCHuman == nil then error("NPC Human is nil!") end
 
     local states = RBLXStateMachineLib:LoadDirectory(script.States)
 
@@ -81,6 +85,24 @@ API.InitializeStateMachine = function(NPC: Instance)
     thisStateMachine.Data.StateMachine = thisStateMachine
 
     StateMachines[NPC] = thisStateMachine
+
+    -- cleanup
+    local function DestroyStateMachine()
+        if not StateMachines[NPC] then return end
+        
+        StateMachines[NPC]:Destroy()
+        StateMachines[NPC] = nil
+        if Paths[NPC].PathObject then
+            Paths[NPC].PathObject:Destroy()
+        end
+        Paths[NPC] = nil
+        BlockedIndices[NPC] = nil
+
+        collectgarbage("count")
+    end
+
+    NPCHuman.Died:Connect(DestroyStateMachine)
+    NPC.Destroying:Connect(DestroyStateMachine)
 end
 
 
@@ -183,6 +205,9 @@ API.ComputePath = function(NPC: Instance, Target: any): {PathWaypoint}?
     if Path.Status == Enum.PathStatus.Success then
         return Path:GetWaypoints()
     end
+
+    -- Pathing Failed Hook
+    task.spawn(Config.Hooks.PathingFailed, NPC, "Path Not Found")
 
     -- default, no path
     return nil

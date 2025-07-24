@@ -142,7 +142,7 @@ API.InsertAntiLag = function(NPC: Instance, UseExtremeCase: boolean?, IgnoreHuma
     -- Default case
     if not UseExtremeCase then
         DefaultAntilag:Clone().Parent = NPC
-        -- should already be enabled !
+        DefaultAntilag.Enabled = true
     end
 
     -- TODO:// implement extreme case here
@@ -150,6 +150,7 @@ API.InsertAntiLag = function(NPC: Instance, UseExtremeCase: boolean?, IgnoreHuma
     -- use pcall and SetNetworkOwner(nil) if auto
     if UseExtremeCase then
         DefaultAntilag:Clone().Parent = NPC
+        DefaultAntilag.Enabled = true
     end
 end
 

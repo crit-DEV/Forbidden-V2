@@ -16,6 +16,7 @@ local root = script.Parent.Parent
 local Common        = require(root.Common)
 local MathModule    = require(root.Math)
 local ConfigHandler = require(root.AI.ConfigHandler)
+local ForbiddenDebugging = require(root.AI.Debugging)
 
 -- == API Functions == --
 -- Target should be best of class (i.e. if char should be the model,   if part should be a part,   if pos should be the Common.GetBasePart)
@@ -35,7 +36,7 @@ API.CanMoveToRaycast = function(NPC: Instance, Target: Instance): boolean
 end
 
 -- Checks if the floor is crossable (heuristic)
-API.CanCrossFloorRaycast = function(NPC: Instance, Target: Instance): boolean
+API.CanCrossFloorRaycast = function(NPC: Instance, Target: any): boolean
     
     local config = ConfigHandler.GetActiveConfig(NPC)
     
@@ -62,6 +63,7 @@ API.CanCrossFloorRaycast = function(NPC: Instance, Target: Instance): boolean
         raycastParams.RespectCanCollide = true
 
         local result = workspace:Raycast(Position, Vector3.new(0, -1, 0) * config.DirectMoveTo.CheckFloor.FailHeight, raycastParams)
+        -- ForbiddenDebugging.LogWithVerbosity(NPC, 5, "Distance To Ground: " .. tostring(result.Distance) .. " | Position: (" .. string.format("%.3f", result.Position.X) .. ", ", string.format("%.3f", result.Position.Y) .. ", " .. string.format("%.3f", result.Position.Z) .. ")")
         return result ~= nil
     end
 

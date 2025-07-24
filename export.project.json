@@ -1,0 +1,33 @@
+{
+  "name": "ForbiddenAPI",
+  "tree": {
+
+    "$className": "DataModel",
+    "$ignoreUnknownInstances": true,
+    
+    "Workspace": {
+
+      "$className": "Workspace",
+      "$ignoreUnknownInstances": true,
+      "Forbidden API V2": {
+        "$path": "Forbidden-Store-Model.rbxm",
+        "$ignoreUnknownInstances": false,
+        "UngroupInReplicatedStorage":
+        {
+          "$ignoreUnknownInstances": false,
+          "$className": "Folder",
+          "Forbidden": {
+            "$path": "src/Forbidden",
+            "Packages": {
+             "$path": "Packages" 
+            }  
+          }
+        }
+      }
+
+    }
+  },
+  "globIgnorePaths": [
+    "src/**/compile_exclude"
+  ]
+}

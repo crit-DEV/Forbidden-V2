@@ -55,8 +55,10 @@ local function LoopThroughWaypoints(NPC: Instance)
     
     local thisId = thisCont.RequestId
     local theseWaypoints = thisCont.waypoints
+    task.spawn(config.Hooks.PathingStarted, NPC, theseWaypoints)
     local thisWaypointCount = #theseWaypoints
     local thisCompletedSignal = thisCont.CompletedSignal
+    local timesStuck = 0
     
     -- Visualize
     if config.Visualization.Enabled then
@@ -99,8 +101,40 @@ local function LoopThroughWaypoints(NPC: Instance)
 
         -- Move to the waypoint position
         NPCHuman:MoveTo(wp.Position)
-        task.spawn(config.Hooks.MovingToWaypoint, NPC, wp, "Pathing")
-        NPCHuman.MoveToFinished:Wait()
+        if wp.Label == "ForbiddenDirectMoveTo" then
+            task.spawn(config.Hooks.MovingToWaypoint, NPC, wp, "DirectMoveTo")
+        else
+            task.spawn(config.Hooks.MovingToWaypoint, NPC, wp, "Pathing")
+        end
+        local success = NPCHuman.MoveToFinished:Wait()
+        
+        if not success and config.Unstucking.Enabled then
+            ForbiddenDebugging.Log(NPC, "Failed to move to waypoint: ", "(", formatString(wp.Position.X), ", ", formatString(wp.Position.Y), ", ", formatString(wp.Position.Z), ") with action: ", wp.Action, " and label: ", wp.Label)
+            timesStuck += 1
+
+            if timesStuck >= config.Unstucking.MaxStuckCount then
+                ForbiddenDebugging.Log(NPC, "Max stuck count reached, breaking out of the loop.")
+                task.spawn(config.Hooks.PathingFailed, NPC, "Stuck Limit Reached")
+                break
+            end
+
+            -- can have waits!
+            if config.Unstucking.FireStuckHook then 
+                if config.Hooks.Stuck(NPC, thisCont.Target) then
+                    if thisId ~= thisCont.RequestId then break end
+                    ForbiddenDebugging.Log(NPC, "Stuck hook was successful, continuing to next waypoint.")
+                else
+                    if thisId ~= thisCont.RequestId then break end
+                    ForbiddenDebugging.Log(NPC, "Stuck hook was unsuccessful, breaking out of the loop.")
+                    break
+                end
+            end
+        end
+
+        if not success and not config.Unstucking.Enabled then 
+            task.spawn(config.Hooks.PathingFailed, NPC, "Stuck Limit Reached")
+            break 
+        end
     end
 
     if thisId == thisCont.RequestId then

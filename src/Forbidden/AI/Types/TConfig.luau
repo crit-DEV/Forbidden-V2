@@ -19,16 +19,19 @@ export type Config = {
     ResetOlderRequests: boolean, -- if true, the AI will ignore older requests when a new request is made
     Tracking: Tracking,
     DirectMoveTo: DirectMoveTo,
-    Hooks: Hooks
+    Hooks: Hooks,
+    Unstucking: Unstucking, -- The maximum number of times the AI can be stuck before it stops trying to move (will block the stuck request, and instead fire the PathingFailed hook)
 }
 
 type Hooks = {
     PathfindingLinkReached: (NPC: Instance, Waypoint: PathWaypoint) -> (boolean),
-    MovingToWaypoint: (NPC: Instance, Waypoint: PathWaypoint, MoveType: "DirectMoveTo" | "Pathing" | "PathfindingLink") -> (),
+    MovingToWaypoint: (NPC: Instance, Waypoint: PathWaypoint, MoveType: "DirectMoveTo" | "Pathing" | "PathfindingLink" | string) -> (),
     Stuck: (NPC: Instance, Target: Instance) -> (boolean),
     GoalReached: (NPC: Instance, Target: any) -> (),
     StopAcknowledged: (NPC: Instance, Target: any) -> (),
-    StartAcknowledged: (NPC: Instance, Target: any) -> ()
+    StartAcknowledged: (NPC: Instance, Target: any) -> (),
+    PathingStarted: (NPC: Instance, Waypoints: {PathWaypoint}) -> (),
+    PathingFailed: (NPC: Instance, Reason: "Stuck Limit Reached" | "Path Not Found" | string) -> (),
 }
 
 
@@ -36,7 +39,12 @@ type DirectMoveTo = {
     Enabled: boolean,
     ActivationDistance: number,
     DoRaycast: boolean,
-    JumpHandler: boolean,
+    JumpHandler: {
+        Enabled: boolean,
+        MinConditionReachedTime: number,
+        NextJumpMinTime: number,
+        DistanceFromMoveToPoint: number
+    },
     CheckFloor: CheckFloor,
     TrackingOnly: boolean,
     HeightLimit: number, -- if it exceeds this height limit, it will not use DirectMoveTo
@@ -62,7 +70,7 @@ type RequestPrioritization = {
 }
 
 -- TODO:// research how to use roblox doc's to show defaults etc...
-export type StopType = "CurrentPosition" | "NoStopLogic"
+export type StopType = "CurrentPosition" | "NoStopLogic" | string
 type Visualization = {
     Enabled: boolean, -- Master control for visualization
     Path: boolean,
@@ -80,6 +88,7 @@ type Debugging = {
     StateTransitioning: boolean,
     OutputToConsole: boolean,
     MovingToWaypoint: boolean, -- if true, the AI will log when it is moving to a waypoint
+    Verbosity: number
     -- LogToScript: boolean
 }
 
@@ -100,7 +109,15 @@ type Tracking = {
         MoveTo: BaseDynamicRetrackTimerConfig,
         Pathfind: BaseDynamicRetrackTimerConfig
     },
-    SkipToWaypoint: number -- skips to x waypoint
+    SkipToWaypoint: number, -- skips to x waypoint
+    DistanceMovedThreshold: number -- if the Target has moved this distance, the NPC will retrack.
+}
+
+type Unstucking = {
+    Enabled: boolean,
+    FireStuckHook: boolean,
+    MaxStuckCount: number,
+
 }
 
 type BaseDynamicRetrackTimerConfig = {

@@ -28,6 +28,15 @@ local Common = require(root.Common)
 Defaults.StopType = "CurrentPosition" -- Default stop type is CurrentPosition
 
 
+-- == Unstucking Config == --
+Defaults.Unstucking = {} :: any
+Defaults.Unstucking.Enabled         = true
+Defaults.Unstucking.FireStuckHook   = true -- The stuck hook allows for users to provide a solution if the AI gets stuck when going to a waypoint
+    -- This is different then the PathingFailed hook, which fires if the MaxStuckCount was reached.
+    -- Goal is to provide some recomputation solutions
+Defaults.Unstucking.MaxStuckCount   = 2 -- It will get stuck once, call the Stuck hook, and then try to move again. If it gets stuck again, it will call PathingFailed hook and stop trying to loop through the waypoints.
+
+
 -- == Request Prioritization == --
 Defaults.RequestPrioritization = {} :: any
 Defaults.RequestPrioritization.PreferTimeOverPriority = {} :: any
@@ -62,9 +71,10 @@ Defaults.Visualization.TetherColor          = Color3.fromRGB(255, 255, 0) -- (YE
 -- == Tracking Configuration == --
 Defaults.Tracking = {} :: any
 Defaults.Tracking.Enabled                           = false -- Master control for tracking
-Defaults.Tracking.CollinearTargetPositionOffset     = 0.5 -- If set, the NPC will offset the target's position by this amount when calculating the path (only when using Moveto ops)
-Defaults.Tracking.PredictionMagnitude               = 0.25 -- If true, the NPC will predict the target's movement and adjust its path accordingly
+Defaults.Tracking.CollinearTargetPositionOffset     = 0.25 -- If set, the NPC will offset the target's position by this amount when calculating the path (only when using Moveto ops)
+Defaults.Tracking.PredictionMagnitude               = 2 -- If true, the NPC will predict the target's movement and adjust its path accordingly
 Defaults.Tracking.SkipToWaypoint                    = 3 -- skips to x waypoint, if set to 1 (or below), it will not skip any waypoints (will always track to last waypoint)      
+Defaults.Tracking.DistanceMovedThreshold            = 1 -- studs moved before retrack
 
 -- == Dynamic Retrack Configuration == --
 Defaults.Tracking.DynamicRetrack = {} :: any
@@ -81,6 +91,7 @@ Defaults.Tracking.DynamicRetrack.MoveTo.GetRetrackTimeFunction = function(NPC: I
     -- another function handles the clamping of the timer, so this function can return any value.
     -- by default it chooses max if there is an error.
 end
+
 Defaults.Tracking.DynamicRetrack.MoveTo.ShouldRetrackFunction = function(NPC: Instance, Target: any): boolean
     return true
 end
@@ -98,7 +109,7 @@ Defaults.Tracking.DynamicRetrack.Pathfind.ShouldRetrackFunction = function(NPC: 
     return true
 end
 
-    -- it should be noted, theses functions do not change even if a new cfg is used and the values are changed.
+    -- it should be noted, theses functions/settings do not change even if a new cfg is used and the values are changed. (if they use a val)
     -- the function must be replaced.
     -- this is as we cannot use a cyclic dependency to the ConfigHandler file
     -- if someone wants to fix they can.
@@ -108,16 +119,24 @@ end
 Defaults.DirectMoveTo = {} :: any
 Defaults.DirectMoveTo.Enabled               = true
 Defaults.DirectMoveTo.ActivationDistance    = 60    -- If the distance between the NPC & Target is less than this setting, it will be possible to use DirectMoveTo.
-Defaults.DirectMoveTo.HeightLimit           = 5     -- If the difference between the Y position of the NPC & Target is less than this setting, it will be possible to use DirectMoveTo
-Defaults.DirectMoveTo.JumpHandler           = true  -- Allows Forbidden to make use of the JumpHandler when using DirectMoveTo
+Defaults.DirectMoveTo.HeightLimit           = 10     -- If the difference between the Y position of the NPC & Target is less than this setting, it will be possible to use DirectMoveTo
 Defaults.DirectMoveTo.DoRaycast             = true  -- Enables raycasting that must return a positive result ot use the DirectMoveTo method.
 Defaults.DirectMoveTo.TrackingOnly          = true
 Defaults.DirectMoveTo.AvoidUseHook          = nullbind  -- Allows the user to add a custom function which is called every time DirectMoveTo could potentially be used, if a value of TRUE is returned, the system will NOT use DirectMoveTo.
 
+
+-- == Direct MoveTo -> Jump Handler Config == --
+Defaults.DirectMoveTo.JumpHandler = {} :: any
+Defaults.DirectMoveTo.JumpHandler.Enabled                   = true  -- Allows Forbidden to make use of the JumpHandler when using DirectMoveTo
+Defaults.DirectMoveTo.JumpHandler.MinConditionReachedTime   = .25   -- Has reach the stuck conditions for "x" seconds
+Defaults.DirectMoveTo.JumpHandler.NextJumpMinTime           = 1     -- Cannot jump again for "x" seconds
+Defaults.DirectMoveTo.JumpHandler.DistanceFromMoveToPoint   = 2     -- Distance from the designated point where the ai should be where it can jump 
+
+
 -- == Direct MoveTo -> Checking Floor Config == --
 Defaults.DirectMoveTo.CheckFloor = {} :: any
 Defaults.DirectMoveTo.CheckFloor.Enabled                     = true -- Before attempting a move to, it will check for voids in the floor.
-Defaults.DirectMoveTo.CheckFloor.FailHeight                  = Defaults.DirectMoveTo.HeightLimit + Defaults.AgentInfo.AgentHeight / 2 -- If the distance from the raycast to the ground is this (or more), then it is considered a fail.
+Defaults.DirectMoveTo.CheckFloor.FailHeight                  = 12 -- If the distance from the raycast to the ground is this (or more), then it is considered a fail.
 Defaults.DirectMoveTo.CheckFloor.RaycastSpacing              = 5 -- How spaced out should the raycast be to the target.
 Defaults.DirectMoveTo.CheckFloor.AlwaysRaycastThisDistance   = 2 -- What distance should always be raycasted (in studs away from the NPC)
 Defaults.DirectMoveTo.CheckFloor.CheckFrequencyTimer         = 1 -- How often should the checks be done? (if possible)
@@ -136,7 +155,7 @@ Defaults.Hooks.PathfindingLinkReached = function(NPC: Instance, Waypoint: PathWa
     return true
 end
 Defaults.Hooks.MovingToWaypoint = nullbind
-Defaults.Hooks.Stuck = function(NPC: Instance, Target: any): boolean
+Defaults.Hooks.Stuck = function(NPC: Instance, Target: any): boolean -- if you come up with a better idea for this, let me know! (default func tho)
     -- 9/3/24 @rman501, forgot to add position of the NPC causing AI to go to ~0,0,0
 	local NPCHuman = NPC:FindFirstChildOfClass("Humanoid")
     if NPCHuman == nil then return false end
@@ -146,15 +165,25 @@ Defaults.Hooks.Stuck = function(NPC: Instance, Target: any): boolean
 	local NPCActual = Common.GetBasePart(NPC)
 	if NPCActual == nil then return false end
 
-	local pos = NPCActual.CFrame.Position
-	NPCHuman:MoveTo(Vector3.new(math.random(-3,3) + pos.X, pos.Y, math.random(-3,3) + pos.Z)) -- 9/30/24 @rman501, stuck fix, pos wasnt added.
+	local NPCPos = NPCActual.CFrame.Position
+    
+    local randDir = Vector3.new(math.random(-1,1), 0, math.random(-1,1)).Unit
+    if randDir.X ~= randDir.X then return false end -- rand dir was NaN
+
+
+	NPCHuman:MoveTo(NPCPos + randDir * 10) -- 9/30/24 @rman501, stuck fix, pos wasnt added.
 	NPCHuman.Jump = true
+
+    task.wait(1)
     
     return true
 end
 Defaults.Hooks.GoalReached = nullbind
 Defaults.Hooks.StartAcknowledged = nullbind
 Defaults.Hooks.StopAcknowledged = nullbind
+Defaults.Hooks.PathingFailed = nullbind
+Defaults.Hooks.PathingStarted = nullbind
+Defaults.Hooks.MovingToWaypoint = nullbind
 
 
 -- == Visualization Configuration == --
@@ -163,6 +192,7 @@ Defaults.Debugging.Enabled              = false -- Master control for debugging
 Defaults.Debugging.OutputToConsole      = true
 Defaults.Debugging.StateTransitioning   = true
 Defaults.Debugging.MovingToWaypoint     = false -- if true, the AI will log when it is moving to a waypoint
+Defaults.Debugging.Verbosity            = 3 -- a verbosity ("how much crap can be stuffed into the console that's useless? A LOT")
 -- Defaults.Debugging.LogToScript = true -- prints all outputs from Forbidden AI to a file.
 
 return Defaults
