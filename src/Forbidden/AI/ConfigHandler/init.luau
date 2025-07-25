@@ -426,4 +426,11 @@ ConfigHandler.GetActiveConfig = function(NPC: Instance): AIT.Config
     return ActiveConfigInstances[NPC]
 end
 
+
+ConfigHandler.TriggerCleanup = function(NPC: Instance)
+    ActiveConfigInstances[NPC]  = nil
+    LocalConfigInstances[NPC]   = nil
+    LocalPresets[NPC]           = nil
+end
+
 return ConfigHandler

@@ -196,4 +196,8 @@ API.DoJumpTick = function(NPC: Instance, Target: any)
     return false
 end
 
+API.TriggerCleanup = function(NPC: Instance)
+    TimedRequests[NPC] = nil
+end
+
 return API

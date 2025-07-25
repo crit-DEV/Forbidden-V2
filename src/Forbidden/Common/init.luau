@@ -6,5 +6,6 @@ return {
     GetForbiddenTemporaryWorkspaceFolder = storage.GetForbiddenTemporaryWorkspaceFolder,
     GetForbiddenWSPartsFolder = storage.GetForbiddenWSPartsFolder,
     GetBasePart = typehelp.GetBasePart,
-    GetDistanceFromNPCToTarget = typehelp.GetDistanceFromNPCToTarget
+    GetDistanceFromNPCToTarget = typehelp.GetDistanceFromNPCToTarget,
+    TriggerCleanupTypeHelp = typehelp.TriggerCleanup
 }

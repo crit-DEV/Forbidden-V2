@@ -8,16 +8,21 @@ Developer History
 
 ]]--
 
+-- == Services == --
+local debris = game:GetService("Debris")
+
+
 -- == Setup == --
 local updateList: {[Instance]: BasePart} = {}
 local API = {}
 
+
 -- == Forbidden Modules & Architecture == --
 local Storage = require(script.Parent.Parent.Common.Storage)
 
+
 -- == Internal Functions == --
 local nameseq = 0
-
 local function GetNumberedName()
     nameseq += 1
     return "AUTO-NAMED " .. tostring(nameseq)
@@ -126,6 +131,12 @@ API.GetDistanceFromNPCToTarget = function(NPC: Instance, Target: Instance): numb
 
     local dist = (NPCActual.CFrame.Position - TargetActual.CFrame.Position).Magnitude
     return dist
+end
+
+API.TriggerCleanup = function(NPC: Instance)
+    if not updateList[NPC] then return end
+    debris:AddItem(updateList[NPC], 0)
+    updateList[NPC] = nil
 end
 
 return API

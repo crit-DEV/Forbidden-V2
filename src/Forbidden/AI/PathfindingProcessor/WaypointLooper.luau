@@ -174,4 +174,8 @@ API.EndContinuity = function(NPC: Instance)
     thisCont.CompletedSignal = function() end
 end
 
+API.TriggerCleanup = function(NPC: Instance)
+    ActiveContinuities[NPC] = nil
+end
+
 return API
