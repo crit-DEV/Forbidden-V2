@@ -53,13 +53,15 @@ local function LoopThroughWaypoints(NPC: Instance)
     -- Dereferencing from the table
     local thisCont = ActiveContinuities[NPC]
     
-    local thisId = thisCont.RequestId
-    local theseWaypoints = thisCont.waypoints
-    task.spawn(config.Hooks.PathingStarted, NPC, theseWaypoints)
-    local thisWaypointCount = #theseWaypoints
-    local thisCompletedSignal = thisCont.CompletedSignal
-    local timesStuck = 0
+    local thisId                = thisCont.RequestId
+    local thisTarget            = thisCont.Target
+    local theseWaypoints        = thisCont.waypoints
+    local thisCompletedSignal   = thisCont.CompletedSignal
+    local thisWaypointCount     = #theseWaypoints
     
+    local timesStuck        = 0
+    
+    task.spawn(config.Hooks.PathingStarted, NPC, theseWaypoints)
     -- Visualize
     if config.Visualization.Enabled then
         if config.Visualization.Path then
@@ -71,7 +73,7 @@ local function LoopThroughWaypoints(NPC: Instance)
     for i=1, thisWaypointCount, 1 do
 
         -- Verify this is the most recent request & it is not stopped
-        if thisId ~= thisCont.RequestId then break end
+        if thisId ~= ActiveContinuities[NPC].RequestId then break end
 
         -- Verify the NPC is valid
         if not isValid(NPC) then break end
@@ -120,11 +122,11 @@ local function LoopThroughWaypoints(NPC: Instance)
 
             -- can have waits!
             if config.Unstucking.FireStuckHook then 
-                if config.Hooks.Stuck(NPC, thisCont.Target) then
-                    if thisId ~= thisCont.RequestId then break end
+                if config.Hooks.Stuck(NPC, thisTarget) then
+                    if thisId ~= ActiveContinuities[NPC].RequestId then break end
                     ForbiddenDebugging.Log(NPC, "Stuck hook was successful, continuing to next waypoint.")
                 else
-                    if thisId ~= thisCont.RequestId then break end
+                    if thisId ~= ActiveContinuities[NPC].RequestId then break end
                     ForbiddenDebugging.Log(NPC, "Stuck hook was unsuccessful, breaking out of the loop.")
                     break
                 end

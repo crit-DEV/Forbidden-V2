@@ -110,4 +110,16 @@ API.DeleteVisualization = function(NPC: Instance)
     DeleteVisualizedParts(Folders[NPC])
 end
 
+API.TriggerCleanup = function(NPC: Instance)
+    -- Validate
+    if not Folders[NPC] then return end
+
+    -- Delete parts
+    DeleteVisualizedParts(Folders[NPC])
+
+    -- Remove folder
+    Folders[NPC]:Destroy()
+    Folders[NPC] = nil
+end
+
 return API

@@ -28,6 +28,7 @@ local ForbiddenDebugging    = require(ForbiddenDir.AI.Debugging)
 local MessageQueue          = require(ForbiddenDir.AI.MessageQueue)
 local ConfigHandler         = require(ForbiddenDir.AI.ConfigHandler)
 local WaypointLooper        = require(ForbiddenDir.AI.PathfindingProcessor.WaypointLooper)
+local WaypointVisualizer    = require(ForbiddenDir.AI.Visualization.WaypointsVisualization)
 local Common                = require(ForbiddenDir.Common)
 
 
@@ -66,23 +67,24 @@ local function NewRequestHandler(data)
     -- If the state was entered by a Stop Request (or there is an extraneous stop request / none), then acknowledge & return.
     local NextRequest = MessageQueue.GetNewRequest(config.NPC)
     if NextRequest == nil then return end
-    if NextRequest.RequestType == "Stop" then 
+
+    MessageQueue.SetActiveRequest(config.NPC, NextRequest)
+    NextRequest.ProcessingState = "Processing"
+
+    if NextRequest.RequestType == "Stop" then
+        data.Request.ProcessingState = "Processed"
+        WaypointLooper.EndContinuity(config.NPC)
+        task.spawn(config.Hooks.StopAcknowledged, config.NPC, NextRequest.Target)
+        WaypointVisualizer.DeleteVisualization(config.NPC)
         if data.Target ~= nil then
             -- stop the NPC.
             StopNPCByStopType(config)
-            data.StateMachine:ChangeData("Target", nil)
         end
-        MessageQueue.SetActiveRequest(config.NPC, NextRequest)
-        NextRequest.ProcessingState = "Processed"
-        WaypointLooper.EndContinuity(config.NPC)
-        task.spawn(config.Hooks.StopAcknowledged, config.NPC, NextRequest.Target)
+        NextRequest.ProcessingState = "Processed" -- Set the request as processed.
+        data.StateMachine:ChangeData("Target", nil)
         -- stop acknowledged hook could go here.
         return 
     end
-
-    -- Acknowledge that the request is being worked on.
-    MessageQueue.SetActiveRequest(config.NPC, NextRequest)
-    NextRequest.ProcessingState = "Processing"
     
     -- Update Data
     data.StateMachine:ChangeData("Request", NextRequest)

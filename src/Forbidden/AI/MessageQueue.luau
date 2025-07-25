@@ -261,6 +261,7 @@ API.SendStartMessage = function(NPC: Instance, Target: any, Yields: boolean?, Pr
         Yields = Yields or false,
         Priority = prio,
         ProcessingState = "Requested",
+        RequestType = "Start"
     }
 
     if Yields then
@@ -293,6 +294,7 @@ API.SendStopMessage = function(NPC: Instance, Yields: boolean?, Priority: AIT.Re
         Yields = Yields or false,
         Priority = prio,
         ProcessingState = "Requested",
+        RequestType = "Stop"
     }
 
     if Yields then
