@@ -131,7 +131,7 @@ Defaults.DirectMoveTo.JumpHandler.Enabled                   = true  -- Allows Fo
 Defaults.DirectMoveTo.JumpHandler.MinConditionReachedTime   = .25   -- Has reach the stuck conditions for "x" seconds
 Defaults.DirectMoveTo.JumpHandler.NextJumpMinTime           = 1     -- Cannot jump again for "x" seconds
 Defaults.DirectMoveTo.JumpHandler.DistanceFromMoveToPoint   = 2     -- Distance from the designated point where the ai should be where it can jump 
-
+Defaults.DirectMoveTo.JumpHandler.CustomJumpFunction        = nil -- if this returns true, the AI will jump (ignores all other conditions)
 
 -- == Direct MoveTo -> Checking Floor Config == --
 Defaults.DirectMoveTo.CheckFloor = {} :: any

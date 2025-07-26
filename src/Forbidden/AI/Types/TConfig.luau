@@ -43,7 +43,8 @@ type DirectMoveTo = {
         Enabled: boolean,
         MinConditionReachedTime: number,
         NextJumpMinTime: number,
-        DistanceFromMoveToPoint: number
+        DistanceFromMoveToPoint: number,
+        CustomJumpFunction: ((NPC: Instance, Target: Instance) -> (boolean))? -- if this returns true, the AI will jump (ignores all other conditions)
     },
     CheckFloor: CheckFloor,
     TrackingOnly: boolean,

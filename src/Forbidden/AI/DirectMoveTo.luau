@@ -123,14 +123,24 @@ API.GetDirectMoveToPosition = function(NPC: Instance, Target: Instance): Vector3
 end
 
 API.DoJumpTick = function(NPC: Instance, Target: any)
+
+    local NPCHuman: Humanoid? = NPC:FindFirstChildOfClass("Humanoid")
+    if NPCHuman == nil then return end -- should not happen, but just in case.
+
     if not TimedRequests[NPC] then TimedRequests[NPC] = {LastCheckFloorFailTime = 0, JumpStuckTime = 0, JumpDebounceTime = 0} end
     local config: AIT.Config = ConfigHandler.GetActiveConfig(NPC)
+    if config.DirectMoveTo.JumpHandler.CustomJumpFunction then
+        if config.DirectMoveTo.JumpHandler.CustomJumpFunction(NPC, Target) then
+            ForbiddenDebugging.Log(NPC, "Custom jump function returned true, jumping.")
+            NPCHuman.Jump = true
+            return true
+        end
+    end
+    
     if not config.AgentInfo.AgentCanJump then return end
     if not config.DirectMoveTo.TrackingOnly and config.Tracking.Enabled then return end
     if not config.DirectMoveTo.JumpHandler.Enabled then return end
 
-    local NPCHuman: Humanoid? = NPC:FindFirstChildOfClass("Humanoid")
-    if NPCHuman == nil then return end
 
     local NPCActual = Common.GetBasePart(NPC)
     local TargetActual = Common.GetBasePart(Target, true, NPC)

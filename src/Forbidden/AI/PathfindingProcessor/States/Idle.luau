@@ -72,6 +72,7 @@ local function NewRequestHandler(data)
     NextRequest.ProcessingState = "Processing"
 
     if NextRequest.RequestType == "Stop" then
+        if data.Request == nil then return end -- No request to stop, return.
         data.Request.ProcessingState = "Processed"
         WaypointLooper.EndContinuity(config.NPC)
         task.spawn(config.Hooks.StopAcknowledged, config.NPC, NextRequest.Target)
