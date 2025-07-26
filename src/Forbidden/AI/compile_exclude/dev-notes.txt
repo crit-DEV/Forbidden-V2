@@ -1,18 +1,1 @@
-All modules to be impl:
-    PositionalOptimization
-    ConfigRegistry
-    Visualization
-    Hooking
-    DirectMovement
-    Unstucking
-    MessageQueue
-    A-STAR
-    Precompilation
-    ObstacleDetection
-    Celling
-    Tether
-
-
-
-Features to impl:
-    Pause Current op for character
+Hello, if you are looking to add anything to Forbidden AI and need to share notes across versions with developments, please add them here!
