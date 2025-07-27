@@ -1,6 +1,5 @@
---3/23/25
+-- 7/27/25 @rman501,  Removed Standard module bc it is no longer maintained from v1.
 return {
     AI = require(script.AI),
-    Math = require(script.Math),
-    Standard = require(script.Standard)
+    Math = require(script.Math)
   }
