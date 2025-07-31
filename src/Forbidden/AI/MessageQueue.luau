@@ -35,9 +35,9 @@ type StopRequest = {
 
 type StartRequest = {
     ["RequestType"]: "Start",
-    ["Target"]: any?, -- can be any type, but usually a Model or Instance or Location
-    ["Yields"]: boolean,
     ["Time"]: number,
+    ["Yields"]: boolean,
+    ["Target"]: any?, -- can be any type, but usually a Model or Instance or Location
     ["Priority"]: number, -- Compares with the EndRequest, if greater, it will be processed first (only matters if the time is the same)
     ["ProcessingState"]: AIT.ProcessingState,
     ["FinishedSignal"]: BindableEvent?
@@ -71,9 +71,9 @@ local function InitializeMQ(NPC: Instance)
         ActiveConfig = TablesLibrary.DeepCopy(Defaults),
         NewestStartRequest = {
             RequestType = "Start",
-            Target = nil,
-            Yields = false,
             Time = os.clock(),
+            Yields = false,
+            Target = nil,
             Priority = AIT.RequestPriority.ConvertPriorityToNumber("DefaultStart"), -- default priority
             ProcessingState = "Processed"
         },
@@ -88,9 +88,6 @@ local function InitializeMQ(NPC: Instance)
         ActiveRequest = nil,
         Processing = false
     }
-
-    TablesLibrary.LockKeyInTable(Messages[NPC].NewestStartRequest, "RequestType")
-    TablesLibrary.LockKeyInTable(Messages[NPC].NewestStopRequest, "RequestType")
 end
 
 local function GetMQSingleton(NPC: Instance): MQ_Singleton
@@ -124,6 +121,10 @@ API.SetActiveRequest = function(NPC: Instance, Request: StartRequest | StopReque
     GetMQSingleton(NPC).ActiveRequest = Request
 end
 
+
+API.PrintOutRequests = function(NPC: Instance)
+    print(Messages)
+end
 
 API.GetNewRequest = function(NPC: Instance)
     local MQ_Singleton = GetMQSingleton(NPC)
@@ -261,18 +262,17 @@ API.SendStartMessage = function(NPC: Instance, Target: any, Yields: boolean?, Pr
         Yields = Yields or false,
         Priority = prio,
         ProcessingState = "Requested",
-        RequestType = "Start"
+        RequestType = "Start",
+        FinishedSignal = nil
     }
 
+    local event = nil
     if Yields then
-        MQ_Singleton.NewestStartRequest.FinishedSignal = Instance.new("BindableEvent")
+        event = Instance.new("BindableEvent")
+        MQ_Singleton.NewestStartRequest.FinishedSignal = event
     end
 
-    if not MQ_Singleton.NewestStartRequest.FinishedSignal then
-        return nil
-    end
-
-    return MQ_Singleton.NewestStartRequest.FinishedSignal.Event
+    return event
 end
 
 
@@ -294,18 +294,17 @@ API.SendStopMessage = function(NPC: Instance, Yields: boolean?, Priority: AIT.Re
         Yields = Yields or false,
         Priority = prio,
         ProcessingState = "Requested",
-        RequestType = "Stop"
+        RequestType = "Stop",
+        FinishedSignal = nil
     }
 
+    local event = nil
     if Yields then
-        MQ_Singleton.NewestStopRequest.FinishedSignal = Instance.new("BindableEvent")
+        event = Instance.new("BindableEvent")
+        MQ_Singleton.NewestStopRequest.FinishedSignal = event
     end
 
-    if not MQ_Singleton.NewestStopRequest.FinishedSignal then
-        return nil
-    end
-
-    return MQ_Singleton.NewestStopRequest.FinishedSignal.Event
+    return event
 end
 
 return API

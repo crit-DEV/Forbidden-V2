@@ -141,8 +141,8 @@ local function LoopThroughWaypoints(NPC: Instance)
 
     if thisId == thisCont.RequestId then
         thisCompletedSignal() -- if same request, call the completed signal (used for transition back to Idle)
-        API.EndContinuity(NPC)
         config.Hooks.GoalReached(NPC, thisCont.Target) -- not necessary to spawn this (at end of an async func) (keep in mind)
+        API.EndContinuity(NPC)
     end
 
 end

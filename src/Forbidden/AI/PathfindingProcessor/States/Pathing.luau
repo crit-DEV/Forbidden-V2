@@ -47,7 +47,7 @@ local function NewRequestHandler(data)
     
     -- Update State
     data.StateMachine:ChangeState("Idle")
-
+    return true
 end
  
 -- == Methods == --
@@ -82,21 +82,30 @@ function Pathing:OnEnter(data) -- Called whenever the state changes into "Blue"
     -- Set the waypoints in the state data.
     data.StateMachine:ChangeData("Waypoints", waypoints)
 
+    local request = data.Request
     -- Start the waypoint looper.
     local function completedSignal()
         -- This function is called when the waypoint looper completes.
         ForbiddenDebugging.Log(config.NPC, "Pathing completed for ", config.NPC:GetFullName())
         -- Optionally, you can change the state or perform other actions here.
+
+        if request ~= data.Request then 
+            ForbiddenDebugging.Log(config.NPC, "Request has changed during pathing, stopping current pathing.")
+            return
+        end
+
         data.Request.ProcessingState = "Processed"
         data.StateMachine:ChangeState("Idle")
     end
     WaypointLooper.StartContinuity(config.NPC, target, waypoints, completedSignal)
 
+    print("ended")
+
     -- Acknowledge the request is processed.
 end
 
 function Pathing:OnHeartbeat(data) -- Called every heartbeat
-    NewRequestHandler(data)
+    if NewRequestHandler(data) then return end
     local config: AIT.Config = data.Config
     local target: Instance? = data.Target
     if not target then

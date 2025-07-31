@@ -67,9 +67,9 @@ local function NewRequestHandler(data)
     -- If the state was entered by a Stop Request (or there is an extraneous stop request / none), then acknowledge & return.
     local NextRequest = MessageQueue.GetNewRequest(config.NPC)
     if NextRequest == nil then return end
+    if NextRequest.ProcessingState == "Processing" or NextRequest.ProcessingState == "Processed" then return end -- redundant
 
-    MessageQueue.SetActiveRequest(config.NPC, NextRequest)
-    NextRequest.ProcessingState = "Processing"
+    MessageQueue.SetActiveRequest(config.NPC, NextRequest) -- sets processing state to Processing
 
     if NextRequest.RequestType == "Stop" then
         if data.Request == nil then return end -- No request to stop, return.
@@ -97,7 +97,7 @@ local function NewRequestHandler(data)
         -- print(ConfigHandler.GetConfig(config.NPC).Tracking.Enabled)
         -- print(ConfigHandler.GetActiveConfig(config.NPC).Tracking.Enabled)
         config:ApplyNow() -- Apply the config to the NPC.
-        task.spawn(config.Hooks.StartAcknowledged,config.NPC, NextRequest.Target)
+        task.spawn(config.Hooks.StartAcknowledged, config.NPC, NextRequest.Target)
         if config.Tracking.Enabled and typeof(NextRequest.Target) == "Instance" then
             data.StateMachine:ChangeState("Tracking")
         else
@@ -125,26 +125,36 @@ function Idle:OnEnter(data) -- Called whenever the state changes into "Blue"
 
     -- Finished Signal
     -- send old signal finished
-    if data.Request and data.Request.FinishedSignal ~= nil then 
+    if data.Request and data.Request.FinishedSignal then 
         data.Request.FinishedSignal:Fire()
     end
 
-    -- If another request, then continue.
-    NewRequestHandler(data)
+    -- -- If another request, then continue.
+    -- local success, err = pcall(function()
+    --     NewRequestHandler(data)
+    -- end)
+    -- if not success then
+    --     print("StateMachine error:", err)
+    -- end
 end
 
 function Idle:OnHeartbeat(data) -- Called every heartbeat
+    print("FUCK YOU STATE MACHINES ")
 
     -- Get next request
     -- If stop request, acknowledge it.
     -- If a real request, it will continue
-    NewRequestHandler(data)
+    local success, err = pcall(function()
+        NewRequestHandler(data)
+    end)
+    if not success then
+        print("StateMachine error:", err)
+    end
 end
 
 function Idle:OnLeave() -- Called whenever the state is left even if target gets destroyed
     local config: AIT.Config = self.Data.Config
     ForbiddenDebugging.Log(config.NPC, "Leaving Idle State for ", config.NPC:GetFullName())
-    
 end
 
 return Idle

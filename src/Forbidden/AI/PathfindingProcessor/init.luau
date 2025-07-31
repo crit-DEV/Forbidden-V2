@@ -88,6 +88,9 @@ API.InitializeStateMachine = function(NPC: Instance)
 
     -- cleanup
     local function DestroyStateMachine()
+
+        ForbiddenDebugging.Log(NPC, "Destroying State Machine for NPC: ", NPC:GetFullName())
+
         if not StateMachines[NPC] then return end
         
         StateMachines[NPC]:Destroy()
@@ -103,6 +106,11 @@ API.InitializeStateMachine = function(NPC: Instance)
 
     NPCHuman.Died:Connect(DestroyStateMachine)
     NPC.Destroying:Connect(DestroyStateMachine)
+end
+
+
+API.PrintStateMachines = function()
+    print(StateMachines)
 end
 
 

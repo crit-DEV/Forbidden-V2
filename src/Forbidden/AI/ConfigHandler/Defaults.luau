@@ -183,7 +183,6 @@ Defaults.Hooks.StartAcknowledged = nullbind
 Defaults.Hooks.StopAcknowledged = nullbind
 Defaults.Hooks.PathingFailed = nullbind
 Defaults.Hooks.PathingStarted = nullbind
-Defaults.Hooks.MovingToWaypoint = nullbind
 
 
 -- == Visualization Configuration == --
