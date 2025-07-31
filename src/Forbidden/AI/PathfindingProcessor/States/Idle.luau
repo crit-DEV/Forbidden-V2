@@ -139,14 +139,14 @@ function Idle:OnEnter(data) -- Called whenever the state changes into "Blue"
 end
 
 function Idle:OnHeartbeat(data) -- Called every heartbeat
-    print("FUCK YOU STATE MACHINES ")
-
     -- Get next request
     -- If stop request, acknowledge it.
     -- If a real request, it will continue
+
     local success, err = pcall(function()
         NewRequestHandler(data)
     end)
+
     if not success then
         print("StateMachine error:", err)
     end

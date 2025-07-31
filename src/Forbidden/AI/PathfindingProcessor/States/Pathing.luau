@@ -86,6 +86,11 @@ function Pathing:OnEnter(data) -- Called whenever the state changes into "Blue"
     -- Start the waypoint looper.
     local function completedSignal()
         -- This function is called when the waypoint looper completes.
+        if data.StateMachine:GetCurrentState() ~= "Pathing" then
+            ForbiddenDebugging.Log(config.NPC, "Pathing state has changed, stopping waypoint looper.")
+            return
+        end
+        
         ForbiddenDebugging.Log(config.NPC, "Pathing completed for ", config.NPC:GetFullName())
         -- Optionally, you can change the state or perform other actions here.
 
@@ -98,9 +103,6 @@ function Pathing:OnEnter(data) -- Called whenever the state changes into "Blue"
         data.StateMachine:ChangeState("Idle")
     end
     WaypointLooper.StartContinuity(config.NPC, target, waypoints, completedSignal)
-
-    print("ended")
-
     -- Acknowledge the request is processed.
 end
 

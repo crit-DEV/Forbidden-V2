@@ -35,7 +35,7 @@ API.SmartPathfind = function(NPC: Instance, Target: any, Yields: boolean?, Prior
     PathfindingProcessor.InitializeStateMachine(NPC) -- will return if already initialized
     local signal = MessageQueue.SendStartMessage(NPC, Target, Yields, Priority)
     if Yields and signal then
-        signal:Wait()
+        signal.Event:Wait()
     end
 end
 
@@ -75,7 +75,7 @@ API.Stop = function(NPC: Instance, Yields: boolean?, Priority: RequestPriority? 
     Priority = Priority or "DefaultStop"
     local signal = MessageQueue.SendStopMessage(NPC, Yields, Priority)
     if Yields and signal then
-        signal:Wait()
+        signal.Event:Wait()
     end
 end
 
