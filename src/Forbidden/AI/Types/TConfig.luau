@@ -38,7 +38,19 @@ type Hooks = {
 type DirectMoveTo = {
     Enabled: boolean,
     ActivationDistance: number,
-    DoRaycast: boolean,
+    Raycast: {
+        Enabled: boolean,
+        Range: number, 
+        SeeThroughTransparentParts: boolean, 
+        SeeThroughNonCollidable: boolean, 
+        MinimumTransparency: number, 
+        FilterTable: {}, 
+        FilterAttempts: number,
+        OffsetFromOrigin: Vector3,
+        OffsetFromTarget: Vector3,
+        OutputCollision: boolean,
+        FilterFunction: (hit: BasePart) -> (boolean)
+    },
     JumpHandler: {
         Enabled: boolean,
         MinConditionReachedTime: number,

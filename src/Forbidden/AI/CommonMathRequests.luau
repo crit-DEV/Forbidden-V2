@@ -24,12 +24,9 @@ API.CanMoveToRaycast = function(NPC: Instance, Target: Instance): boolean
 
     -- == Config == --
     local config = ConfigHandler.GetActiveConfig(NPC)
+    if not config.DirectMoveTo.Raycast.Enabled then return true end
 
-    local RaycastSettings: MathModule.RaycastSettings = {
-        Range = config.DirectMoveTo.ActivationDistance + 10,
-        SeeThroughTransparentParts = false,
-        SeeThroughNonCollidable = true
-    } :: MathModule.RaycastSettings
+    local RaycastSettings: MathModule.RaycastSettings = config.DirectMoveTo.Raycast :: any
 
 
     return MathModule.LineOfSight(NPC, Target, RaycastSettings)

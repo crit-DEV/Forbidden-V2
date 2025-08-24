@@ -120,9 +120,22 @@ Defaults.DirectMoveTo = {} :: any
 Defaults.DirectMoveTo.Enabled               = true
 Defaults.DirectMoveTo.ActivationDistance    = 60    -- If the distance between the NPC & Target is less than this setting, it will be possible to use DirectMoveTo.
 Defaults.DirectMoveTo.HeightLimit           = 10     -- If the difference between the Y position of the NPC & Target is less than this setting, it will be possible to use DirectMoveTo
-Defaults.DirectMoveTo.DoRaycast             = true  -- Enables raycasting that must return a positive result ot use the DirectMoveTo method.
 Defaults.DirectMoveTo.TrackingOnly          = true
 Defaults.DirectMoveTo.AvoidUseHook          = nullbind  -- Allows the user to add a custom function which is called every time DirectMoveTo could potentially be used, if a value of TRUE is returned, the system will NOT use DirectMoveTo.
+
+-- == Direct MoveTo -> Raycast Settings
+Defaults.DirectMoveTo.Raycast = {} :: any
+Defaults.DirectMoveTo.Raycast.Enabled                       = true  -- Enables raycasting that must return a positive result to use the DirectMoveTo method.
+Defaults.DirectMoveTo.Raycast.Range                         = Defaults.DirectMoveTo.ActivationDistance + 10  -- The maximum range the raycast will check for obstacles between the NPC & Target
+Defaults.DirectMoveTo.Raycast.SeeThroughTransparentParts    = false  -- If true, the raycast will ignore parts with transparency greater than or equal to MinimumTransparency
+Defaults.DirectMoveTo.Raycast.SeeThroughNonCollidable       = true  -- If true, the raycast will ignore non-collidable parts
+Defaults.DirectMoveTo.Raycast.MinimumTransparency           = 0.001 -- The minimum transparency a part must have to be considered "see-through" if SeeThroughTransparentParts is true
+-- Defaults.DirectMoveTo.Raycast.FilterTable                   = {}    -- A table of instances that the raycast will ignore (in addition to the NPC)
+Defaults.DirectMoveTo.Raycast.FilterAttempts                = 10    -- The number of attempts the raycast will make to find a clear path (if the raycast hits something, it will retry up to this many times)
+Defaults.DirectMoveTo.Raycast.OffsetFromOrigin              = Vector3.new(0, 0, 0) -- An offset added to the origin of the raycast (the NPC's position)
+Defaults.DirectMoveTo.Raycast.OffsetFromTarget              = Vector3.new(0, 0, 0) -- An offset added to the target of the raycast (the Target's position)
+Defaults.DirectMoveTo.Raycast.FilterFunction                = function(hit: Instance) return false end -- A function which can be used to filter any of the hit instances if True is returned.
+-- Defaults.DirectMoveTo.Raycast.OutputCollision             = false -- If true, the raycast will output the part it collided with (for debugging purposes)
 
 
 -- == Direct MoveTo -> Jump Handler Config == --
@@ -185,7 +198,7 @@ Defaults.Hooks.PathingFailed = nullbind
 Defaults.Hooks.PathingStarted = nullbind
 
 
--- == Visualization Configuration == --
+-- == Debugging Configuration == --
 Defaults.Debugging = {} :: any
 Defaults.Debugging.Enabled              = false -- Master control for debugging
 Defaults.Debugging.OutputToConsole      = true

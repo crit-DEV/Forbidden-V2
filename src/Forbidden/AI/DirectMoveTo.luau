@@ -35,6 +35,7 @@ local TimedRequests: {[Instance]: {
 API.CanUseDirectMoveTo = function(NPC: Instance, Target: Instance): boolean
     
     local Config: AIT.Config = ConfigHandler.GetActiveConfig(NPC)
+    if not Config.DirectMoveTo.Enabled then return false end 
     
     -- Check if req is blocked
     -- outside getRes bc otherwise infinite loop of time getting updated.
