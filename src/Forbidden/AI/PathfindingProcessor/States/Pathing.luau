@@ -74,6 +74,13 @@ function Pathing:OnEnter(data) -- Called whenever the state changes into "Blue"
     end
 
     local waypoints = PathfindingProcessor.ComputePath(config.NPC, target)
+    
+    if config.WaypointSkipping.RegularPathfindSkip > 1 then
+        -- Skip to the waypoint specified by SkipToWaypoint
+        local skipIndex = math.min(config.WaypointSkipping.RegularPathfindSkip, #waypoints)
+        waypoints = {table.unpack(waypoints, skipIndex)}
+    end
+    
     if not waypoints then
         ForbiddenDebugging.Log(config.NPC, "Failed to compute path for Pathing state.")
         return

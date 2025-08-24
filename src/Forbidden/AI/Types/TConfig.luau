@@ -18,9 +18,15 @@ export type Config = {
     RequestPrioritization: RequestPrioritization, -- if true, the AI will ignore the stop operation and continue moving to the next target
     ResetOlderRequests: boolean, -- if true, the AI will ignore older requests when a new request is made
     Tracking: Tracking,
+    WaypointSkipping: WaypointSkipping,
     DirectMoveTo: DirectMoveTo,
     Hooks: Hooks,
     Unstucking: Unstucking, -- The maximum number of times the AI can be stuck before it stops trying to move (will block the stuck request, and instead fire the PathingFailed hook)
+}
+
+type WaypointSkipping = {
+    RegularPathfindSkip: number,
+    TrackingPathfindSkip: number
 }
 
 type Hooks = {
@@ -122,7 +128,6 @@ type Tracking = {
         MoveTo: BaseDynamicRetrackTimerConfig,
         Pathfind: BaseDynamicRetrackTimerConfig
     },
-    SkipToWaypoint: number, -- skips to x waypoint
     DistanceMovedThreshold: number -- if the Target has moved this distance, the NPC will retrack.
 }
 

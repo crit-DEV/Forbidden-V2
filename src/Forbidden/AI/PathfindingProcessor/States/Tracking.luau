@@ -70,9 +70,9 @@ function Tracking:Pathfind(data): boolean
         return false
     end
 
-    if config.Tracking.SkipToWaypoint > 1 then
+    if config.WaypointSkipping.TrackingPathfindSkip > 1 then
         -- Skip to the waypoint specified by SkipToWaypoint
-        local skipIndex = math.min(config.Tracking.SkipToWaypoint, #waypoints)
+        local skipIndex = math.min(config.WaypointSkipping.TrackingPathfindSkip, #waypoints)
         waypoints = {table.unpack(waypoints, skipIndex)}
     end
 

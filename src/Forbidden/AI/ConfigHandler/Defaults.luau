@@ -73,12 +73,17 @@ Defaults.Tracking = {} :: any
 Defaults.Tracking.Enabled                           = false -- Master control for tracking
 Defaults.Tracking.CollinearTargetPositionOffset     = 0.25 -- If set, the NPC will offset the target's position by this amount when calculating the path (only when using Moveto ops)
 Defaults.Tracking.PredictionMagnitude               = 2 -- If true, the NPC will predict the target's movement and adjust its path accordingly
-Defaults.Tracking.SkipToWaypoint                    = 3 -- skips to x waypoint, if set to 1 (or below), it will not skip any waypoints (will always track to last waypoint)      
 Defaults.Tracking.DistanceMovedThreshold            = 1 -- studs moved before retrack
+
+
+-- == Skip To Waypoint Settings == --
+Defaults.WaypointSkipping = {} -- skips to x waypoint, if set to 1 (or below), it will not skip any waypoints (will always track to last waypoint)      
+Defaults.WaypointSkipping.RegularPathfindSkip   = 2 -- Skips to waypoint #x to avoid a stutter from where the first (or multiple) waypoint lie. (Regular PF)
+Defaults.WaypointSkipping.TrackingPathfindSkip  = 3 -- Skips to waypoint #x to avoid a stutter from where the first (or multiple) waypoint lie. (Tracking)
+
 
 -- == Dynamic Retrack Configuration == --
 Defaults.Tracking.DynamicRetrack = {} :: any
-
 
 Defaults.Tracking.DynamicRetrack.MoveTo = {} :: any
 Defaults.Tracking.DynamicRetrack.MoveTo.MinTimer = 0 -- minimum retrack time if last op was a DirectMoveTo
