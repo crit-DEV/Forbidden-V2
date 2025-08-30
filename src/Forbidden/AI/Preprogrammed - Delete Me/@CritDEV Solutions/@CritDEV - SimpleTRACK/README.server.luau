@@ -8,7 +8,7 @@ https://create.roblox.com/docs/characters/pathfinding
 
 [Overview]
 
-SimpleTRACK is a script that tracks the closest player.
+SimpleTRACK is a script that tracks the closest player. (it is very simple, as the name suggests, and not meant to be used in production)
 It DOES NOT, account for line of sight, though you can use the Forbidden math library to add it very easily
 in the `IsTargetValid` hook.
 
