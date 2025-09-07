@@ -65,6 +65,7 @@ function Tracking:Pathfind(data): boolean
     end
 
     local waypoints = PathfindingProcessor.ComputePath(config.NPC, target)
+    
     if not waypoints then
         ForbiddenDebugging.Log(config.NPC, "Failed to compute path for Tracking state.")
         return false
