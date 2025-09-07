@@ -28,6 +28,7 @@ local API = {}
 -- == Type Definitions == --
 export type RaycastSettings = {
 	Range: number, 
+    OriginPart: BasePart?,
 	SeeThroughTransparentParts: boolean, 
 	SeeThroughNonCollidable: boolean, 
 	MinimumTransparency: number, 
@@ -49,6 +50,7 @@ API.LineOfSight = function(Object1: Instance, Object2: Instance, raycastSettings
 
     -- Set default values for raycastSettings if not provided
     raycastSettings                         = raycastSettings or {} :: RaycastSettings
+    raycastSettings.OriginPart                  = raycastSettings.OriginPart or nil
     raycastSettings.Range                       = raycastSettings.Range or 100
     raycastSettings.SeeThroughTransparentParts  = raycastSettings.SeeThroughTransparentParts or false
     raycastSettings.SeeThroughNonCollidable     = raycastSettings.SeeThroughNonCollidable or false
@@ -62,7 +64,10 @@ API.LineOfSight = function(Object1: Instance, Object2: Instance, raycastSettings
     raycastSettings.FilterFunction              = raycastSettings.FilterFunction or function() return false end
 
     -- == Main Bodies == --
-    local OriginMainBody = Common.GetBasePart(Object1)
+    local OriginMainBody = raycastSettings.OriginPart
+    if OriginMainBody == nil then
+        OriginMainBody = Common.GetBasePart(Object1)
+    end
     local TargetMainBody = Common.GetBasePart(Object2)
 
     -- Perform the line of sight check using PhysicsService
