@@ -69,10 +69,10 @@ API.CanUseDirectMoveTo = function(NPC: Instance, Target: Instance): boolean
         local yDist = npc_pos.Y - target_pos.Y
         if Config.DirectMoveTo.HeightLimit < yDist then return false end
 
-        if Config.DirectMoveTo.DoRaycast then
+        if Config.DirectMoveTo.Raycast.Enabled then
             -- TODO:// update math module and settings to be config handler based ?
             -- TODO:// add check to arms & multiple raycast hitboxes.
-            if not CMathRequests.CanMoveToRaycast(NPC, Target) then ForbiddenDebugging.Log(NPC, "Failed direct raycast check to target."); return false end
+            if not CMathRequests.CanMoveToRaycast(NPC, Target) then ForbiddenDebugging.LogWithVerbosity(NPC, 5, "[" .. NPC:GetFullName() .. "] cannot see target."); return false end
         end
 
         if Config.DirectMoveTo.CheckFloor.Enabled then

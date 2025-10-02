@@ -28,12 +28,12 @@ ConversionByType.CFrame = function(v: CFrame)
 end
 
 -- == API Functions == --
-API.Log = function(NPC, ...)
 
+local function log(NPC, ...)
     local ac = ConfigHandler.GetActiveConfig(NPC)
     if not ac.Debugging.Enabled then return end
 
-    local callerName = debug.info(2, "s")
+    local callerName = debug.info(3, "s")
 
     local inputtedinfo = {...}
     local msg = "[" .. callerName .. "]: "
@@ -56,12 +56,16 @@ API.Log = function(NPC, ...)
     print(msg)
 end
 
+API.Log = function(NPC, ...)
+    log(NPC, ...)
+end
+
 API.LogWithVerbosity = function(NPC: Instance, Verbosity: number, ...)
     local ac = ConfigHandler.GetActiveConfig(NPC)
     if not ac.Debugging.Enabled then return end
 
     if ac.Debugging.Verbosity < Verbosity then return end
-    API.Log(NPC, ...)
+    log(NPC, ...)
 end
 
 -- Saw this in a python function on a short, seemed really cool.
