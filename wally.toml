@@ -1,7 +1,7 @@
 [package]
 name = "crit-dev/forbidden-v2"
-version = "2.0.0"
-registry = "https://github.com/UpliftGames/wally-index intentionally typing here to block myself from uploading"
+version = "2.0.1"
+registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
 
 [dependencies]
