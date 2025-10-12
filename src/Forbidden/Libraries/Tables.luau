@@ -22,6 +22,9 @@ end
 TablesLibrary.DeepCopyPaste = function(Overwriter, Target)
     for index, value in Overwriter do
         if typeof(value) == "table" then
+            if typeof(Target[index]) ~= "table" then
+				Target[index] = {}
+			end
             TablesLibrary.DeepCopyPaste(value, Target[index])
         else
             Target[index] = value

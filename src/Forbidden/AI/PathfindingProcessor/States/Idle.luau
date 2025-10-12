@@ -125,6 +125,11 @@ function Idle:OnEnter(data) -- Called whenever the state changes into "Blue"
 
     -- Finished Signal
     -- send old signal finished
+
+    if data.Request and not data.Request.FinishedSignal then
+        print(data.Request)
+    end
+
     if data.Request and data.Request.FinishedSignal then 
         data.Request.FinishedSignal:Fire()
     end
