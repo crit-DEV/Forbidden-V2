@@ -71,7 +71,7 @@ Defaults.Visualization.TetherColor          = Color3.fromRGB(255, 255, 0) -- (YE
 -- == Tracking Configuration == --
 Defaults.Tracking = {} :: any
 Defaults.Tracking.Enabled                           = false -- Master control for tracking
-Defaults.Tracking.CollinearTargetPositionOffset     = 0.25 -- If set, the NPC will offset the target's position by this amount when calculating the path (only when using Moveto ops)
+Defaults.Tracking.CollinearTargetPositionOffset     = 2 -- If set, the NPC will offset the target's position by this amount when calculating the path (only when using Moveto ops)
 Defaults.Tracking.PredictionMagnitude               = 2 -- If true, the NPC will predict the target's movement and adjust its path accordingly
 Defaults.Tracking.DistanceMovedThreshold            = 1 -- studs moved before retrack
 
