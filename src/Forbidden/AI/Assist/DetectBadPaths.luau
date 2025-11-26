@@ -56,24 +56,16 @@ API.NodeTableExpander = function(nodes: any): {BasePart}
 end
 
 
-API.CheckPath = function(NPC: Instance?, Node1: BasePart, Node2: BasePart): boolean
-	local config: AIT.Config
-
-	if NPC ~= nil then
-		config = ConfigHandler.GetActiveConfig(NPC)
-	else
-		config = Defaults
-	end
+API.CheckPath = function(config: AIT.Config, Node1: BasePart, Node2: BasePart): boolean
 
 	local returned = PathfindingProcessor.RawCompute(Node1.CFrame.Position, Node2.CFrame.Position, config.AgentInfo)
 	return returned ~= nil
 end
 
 -- == API Functions == --
-API.DetectBadPaths = function(Nodes: {BasePart}, NPC: Instance?, CheckBothWays: boolean?): {{From: BasePart, To: BasePart, Omnidirectional: boolean?}}
+API.DetectBadPaths = function(Nodes: {BasePart}, config: AIT.Config?, CheckBothWays: boolean?): {{From: BasePart, To: BasePart, Omnidirectional: boolean?}}
 
-	local config: AIT.Config = Defaults
-	if NPC then config = ConfigHandler.GetActiveConfig(NPC) end
+	if not config then config = Defaults end
 
 	if not config then
 		error("no cfg!, this is unusual!")
@@ -126,12 +118,12 @@ API.DetectBadPaths = function(Nodes: {BasePart}, NPC: Instance?, CheckBothWays: 
 			local n1, n2 = tbl[i], tbl[j]
 			CountAttempt(n1, n2)
 
-			local success1 = API.CheckPath(NPC, n1, n2)
+			local success1 = API.CheckPath(config, n1, n2)
 			if not success1 then InsertBadPath(n1, n2) end
 
 			if CheckBothWays then
 				CountAttempt(n2, n1)
-				local success2 = API.CheckPath(NPC, n2, n1)
+				local success2 = API.CheckPath(config, n2, n1)
 				if not success2 then
 					if not success1 then
 						BadPaths[#BadPaths].Omnidirectional = true
