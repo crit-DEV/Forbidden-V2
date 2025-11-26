@@ -147,14 +147,14 @@ Defaults.DirectMoveTo.Raycast.FilterFunction                = function(hit: Inst
 Defaults.DirectMoveTo.CollisionInferencing = {} :: any
 Defaults.DirectMoveTo.CollisionInferencing.Enabled           = true  -- Enables a check between the NPC & Target to see if anything is colliding.
 Defaults.DirectMoveTo.CollisionInferencing.MinColliderRange  = math.max(Defaults.Tracking.CollinearTargetPositionOffset, Defaults.AgentInfo.AgentRadius / 2)
-Defaults.DirectMoveTo.CollisionInferencing.MaxColliderRange  = Defaults.AgentInfo.AgentRadius * 4  -- Max range of the check
+Defaults.DirectMoveTo.CollisionInferencing.MaxColliderRange  = 3  -- Max range of the check
 Defaults.DirectMoveTo.CollisionInferencing.YOffsetFromGround = 3     -- studs off ground
 Defaults.DirectMoveTo.CollisionInferencing.YSizeOfCollider   = 1     -- studs tall    (i would recommend enabling visualization for this setting)
 -- Defaults.DirectMoveTo.CollisionInferencing.Timeout           = 1     -- maybe implemented in future
 
 -- == Direct MoveTo -> Jump Handler Config == --
 Defaults.DirectMoveTo.JumpHandler = {} :: any
-Defaults.DirectMoveTo.JumpHandler.Enabled                   = true  -- Allows Forbidden to make use of the JumpHandler when using DirectMoveTo
+Defaults.DirectMoveTo.JumpHandler.Enabled                   = false  -- Allows Forbidden to make use of the JumpHandler when using DirectMoveTo
 Defaults.DirectMoveTo.JumpHandler.MinConditionReachedTime   = .25   -- Has reach the stuck conditions for "x" seconds
 Defaults.DirectMoveTo.JumpHandler.NextJumpMinTime           = 1     -- Cannot jump again for "x" seconds
 Defaults.DirectMoveTo.JumpHandler.DistanceFromMoveToPoint   = 2     -- Distance from the designated point where the ai should be where it can jump 
