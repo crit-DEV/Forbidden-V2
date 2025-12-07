@@ -111,7 +111,7 @@ API.isPathObstructedByColliders = function(NPC: Instance, Target: any): boolean
         local params = OverlapParams.new()
         params.CollisionGroup = NPCActual.CollisionGroup
         params.FilterType = Enum.RaycastFilterType.Exclude
-        params.FilterDescendantsInstances = {NPC, TargetActual}
+        params.FilterDescendantsInstances = {NPC, TargetActual, config.DirectMoveTo.Raycast.FilterTable}
         -- print(Target)
         -- print(typeof(Target) == "Instance")
         -- print(Target:IsA("BasePart"))
@@ -180,7 +180,7 @@ API.CanUseDirectMoveTo = function(NPC: Instance, Target: Instance): boolean
         end
 
         if Config.DirectMoveTo.CollisionInferencing.Enabled then
-            if API.isPathObstructedByColliders(NPC, Target) then print(NPC, "Failed CollisionInferencing"); return false end
+            if API.isPathObstructedByColliders(NPC, Target) then ForbiddenDebugging.Log(NPC, "Failed CollisionInferencing"); return false end
         end
 
         if Config.DirectMoveTo.CheckFloor.Enabled then
