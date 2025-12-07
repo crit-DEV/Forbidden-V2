@@ -127,7 +127,7 @@ API.isPathObstructedByColliders = function(NPC: Instance, Target: any): boolean
 
         for _, part in ipairs(hits) do
             if part.CanCollide then
-                print(part)
+                -- print(part)
                 return true
             end
         end
