@@ -153,14 +153,15 @@ function Tracking:OnHeartbeat(data) -- Called every heartbeat
     
     -- RECALL DISTANCE BLOCKER
     local distanceMoved = (data.LastTargetPosition - TargetBasePart.CFrame.Position).Magnitude
-    if distanceMoved < config.Tracking.DistanceMovedThreshold then
+    if distanceMoved < config.Tracking.DistanceMovedThreshold and not data.UpdateRequired then
         ForbiddenDebugging.LogWithVerbosity(NPC, 6, string.format("Distance moved requirement not exceeded. (%.3f)", distanceMoved))
         return
     end
     
     -- USER RECALL BLOCKER
     -- Is the recall request blocked?
-    if not RetrackingOptimization.ShouldRetrack(NPC, data.Target, data.RecallType) then return end
+    -- 12/31/25 @rman501, linked to Path.Blocked event
+    if not RetrackingOptimization.ShouldRetrack(NPC, data.Target, data.RecallType) and not data.UpdateRequired then return end
 
 
     -- Change timer blocker data here
@@ -171,6 +172,7 @@ function Tracking:OnHeartbeat(data) -- Called every heartbeat
     -- Recall pathfind
     ForbiddenDebugging.Log("Recalling!")
     local success = Tracking:Pathfind(data)
+    if success then data.UpdateRequired = false end
     if not success then ForbiddenDebugging.Log(NPC, "Recall failed! Target: ", data.Target) end
     
     -- Change distance blocker data here
@@ -181,6 +183,7 @@ end
 function Tracking:OnLeave(data) -- Called whenever the state is left even if target gets destroyed
     local config: AIT.Config = data.Config
     ForbiddenDebugging.Log(config.NPC, "Leaving Tracking State for ", config.NPC:GetFullName())
+    data.UpdateRequired = false
     -- data reset elsewhere
 end
 

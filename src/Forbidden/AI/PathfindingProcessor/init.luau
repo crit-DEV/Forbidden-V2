@@ -43,7 +43,8 @@ local StateMachines: {
         State: {
             Data: {
                 time: number,
-                Config: AIT.Config
+                Config: AIT.Config,
+                UpdateRequired: boolean
             },
             Name: string
         },
@@ -72,7 +73,8 @@ API.InitializeStateMachine = function(NPC: Instance)
             Target = nil,
             Waypoints = {},
             LastTrackingRecall = 0,
-            RecallType = "DirectMoveTo"
+            RecallType = "DirectMoveTo",
+            UpdateRequired = false
         }
     )
 
@@ -127,11 +129,13 @@ local function onPathBlocked(NPC: Instance, WaypointIndexNumber: number)
     -- do stuff here.
     if StateMachines[NPC] == nil then return end
     if StateMachines[NPC].State.Name == "Idle" then return end -- not active path.
+    StateMachines[NPC].Data.UpdateRequired = true
 end
 
 local function onPathUnblocked(NPC: Instance, WaypointIndexNumber: number)
     if StateMachines[NPC] == nil then return end
     if StateMachines[NPC].State.Name == "Idle" then return end -- not active path.
+    StateMachines[NPC].Data.UpdateRequired = false
 end
 
 

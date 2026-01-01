@@ -6,14 +6,11 @@ Developer History
 ]]--
 
 -- == Services == --
-local rs                    = game:GetService("ReplicatedStorage")
 
 -- == Libraries == --
-local RBLXStateMachineLib = require(rs.Forbidden.Packages.robloxstatemachine)
 
 
 -- == Forbidden Modules & Architecture == --
-local ConfigHandler = require(script.Parent.ConfigHandler)
 
 -- == Types == --
 
