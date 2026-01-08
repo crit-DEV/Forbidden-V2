@@ -18,10 +18,8 @@ local WaypointsVisualization    = require(root.AI.Visualization.WaypointsVisuali
 local Common                    = require(root.Common)
 
 
--- == Initialization ==
-local API = {}
-
-API.TriggerCleanup = function(NPC: Instance)
+-- == API Function == --
+return function(NPC: Instance)
 
     WaypointsVisualization.DeleteVisualization(NPC)
     

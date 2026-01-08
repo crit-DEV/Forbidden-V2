@@ -26,6 +26,7 @@ local DirectMoveTo  = require(root.AI.DirectMoveTo)
 -- local MathModule    = require(root.Math)
 local Common        = require(root.Common)
 local ForbiddenDebugging = require(root.AI.Debugging)
+local TriggerCleanup = require(root.AI.PathfindingProcessor.TriggerCleanup)
 
 
 -- == External Types == --
@@ -101,7 +102,9 @@ API.InitializeStateMachine = function(NPC: Instance)
         Paths[NPC] = nil
         BlockedIndices[NPC] = nil
 
-        collectgarbage("count")
+        TriggerCleanup(NPC)
+
+        collectgarbage("count") -- if someone sees this, please tell me if this is useful or not.
     end
 
     NPCHuman.Died:Connect(DestroyStateMachine)
