@@ -66,6 +66,7 @@ type DirectMoveTo = {
     },
     CheckFloor: CheckFloor,
     TrackingOnly: boolean,
+    CollisionInferencing: CollisionInferencing,
     HeightLimit: number, -- if it exceeds this height limit, it will not use DirectMoveTo
     AvoidUseHook: () -> boolean -- if this returns true, DirectMoveTo will not be used.
 }
@@ -80,6 +81,13 @@ type CheckFloor = {
     FailHeight: number
 }
 
+type CollisionInferencing = {
+    Enabled: boolean,
+    MinColliderRange: number,
+    MaxColliderRange: number,
+    YOffsetFromGround: number,
+    YSizeOfCollider: number
+}
 
 type RequestPrioritization = {
     PreferTimeOverPriority: {
@@ -99,7 +107,8 @@ type Visualization = {
     MovetoRaycast: boolean,
     MovetoRaycastColor: Color3,
     Tether: boolean,
-    TetherColor: Color3
+    TetherColor: Color3,
+    CollisionInferencing: boolean
 }
 
 type Debugging = {
@@ -117,7 +126,7 @@ export type AgentInfo = {
     AgentCanJump: boolean,
     AgentCanClimb: boolean,
     WaypointSpacing: number,
-    Cost: {[string]: number}
+    Costs: {[string]: number}
 }
 
 type Tracking = {

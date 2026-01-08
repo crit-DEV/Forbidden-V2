@@ -53,7 +53,7 @@ Defaults.AgentInfo.AgentHeight      = 5
 Defaults.AgentInfo.AgentCanJump     = true
 Defaults.AgentInfo.AgentCanClimb    = false
 Defaults.AgentInfo.WaypointSpacing  = 4
-Defaults.AgentInfo.Cost             = {Obstacle = math.huge} -- {Water = 20, myPFLink = 10, etc...}
+Defaults.AgentInfo.Costs            = {Obstacle = math.huge} -- {Water = 20, myPFLink = 10, etc...}
 
 
 -- == Visualization Configuration == --
@@ -67,6 +67,7 @@ Defaults.Visualization.MovetoRaycast        = false -- Show the raycast used for
 Defaults.Visualization.MovetoRaycastColor   = Color3.fromRGB(0, 0, 255) -- (BLUE) Color of the raycast visualization
 Defaults.Visualization.Tether               = false -- Show the tether between the NPCs if they are tethered together
 Defaults.Visualization.TetherColor          = Color3.fromRGB(255, 255, 0) -- (YELLOW) Color of the tether visualization
+Defaults.Visualization.CollisionInferencing = false
 
 -- == Tracking Configuration == --
 Defaults.Tracking = {} :: any
@@ -77,7 +78,7 @@ Defaults.Tracking.DistanceMovedThreshold            = 1 -- studs moved before re
 
 
 -- == Skip To Waypoint Settings == --
-Defaults.WaypointSkipping = {} -- skips to x waypoint, if set to 1 (or below), it will not skip any waypoints (will always track to last waypoint)      
+Defaults.WaypointSkipping = {} :: any -- skips to x waypoint, if set to 1 (or below), it will not skip any waypoints (will always track to last waypoint)      
 Defaults.WaypointSkipping.RegularPathfindSkip   = 2 -- Skips to waypoint #x to avoid a stutter from where the first (or multiple) waypoint lie. (Regular PF)
 Defaults.WaypointSkipping.TrackingPathfindSkip  = 3 -- Skips to waypoint #x to avoid a stutter from where the first (or multiple) waypoint lie. (Tracking)
 
@@ -142,10 +143,18 @@ Defaults.DirectMoveTo.Raycast.OffsetFromTarget              = Vector3.new(0, 0, 
 Defaults.DirectMoveTo.Raycast.FilterFunction                = function(hit: Instance) return false end -- A function which can be used to filter any of the hit instances if True is returned.
 -- Defaults.DirectMoveTo.Raycast.OutputCollision             = false -- If true, the raycast will output the part it collided with (for debugging purposes)
 
+-- == Direct MoveTo -> Collision Inferencing Config == --
+Defaults.DirectMoveTo.CollisionInferencing = {} :: any
+Defaults.DirectMoveTo.CollisionInferencing.Enabled           = true  -- Enables a check between the NPC & Target to see if anything is colliding.
+Defaults.DirectMoveTo.CollisionInferencing.MinColliderRange  = math.max(Defaults.Tracking.CollinearTargetPositionOffset, Defaults.AgentInfo.AgentRadius / 2)
+Defaults.DirectMoveTo.CollisionInferencing.MaxColliderRange  = 3  -- Max range of the check
+Defaults.DirectMoveTo.CollisionInferencing.YOffsetFromGround = 3     -- studs off ground
+Defaults.DirectMoveTo.CollisionInferencing.YSizeOfCollider   = 1     -- studs tall    (i would recommend enabling visualization for this setting)
+-- Defaults.DirectMoveTo.CollisionInferencing.Timeout           = 1     -- maybe implemented in future
 
 -- == Direct MoveTo -> Jump Handler Config == --
 Defaults.DirectMoveTo.JumpHandler = {} :: any
-Defaults.DirectMoveTo.JumpHandler.Enabled                   = true  -- Allows Forbidden to make use of the JumpHandler when using DirectMoveTo
+Defaults.DirectMoveTo.JumpHandler.Enabled                   = false  -- Allows Forbidden to make use of the JumpHandler when using DirectMoveTo
 Defaults.DirectMoveTo.JumpHandler.MinConditionReachedTime   = .25   -- Has reach the stuck conditions for "x" seconds
 Defaults.DirectMoveTo.JumpHandler.NextJumpMinTime           = 1     -- Cannot jump again for "x" seconds
 Defaults.DirectMoveTo.JumpHandler.DistanceFromMoveToPoint   = 2     -- Distance from the designated point where the ai should be where it can jump 

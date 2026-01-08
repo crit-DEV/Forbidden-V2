@@ -32,6 +32,110 @@ local TimedRequests: {[Instance]: {
 -- target has to be instance at this point.
 -- which means computing fake point elsewhere.
 -- needs to be fore raycast.
+local timed = 0
+local function GetPathCheckBox(NPC: Instance, NPCActual: BasePart, TargetActual: BasePart, dist: number)
+    -- Positions
+    local npcPos = NPCActual.Position
+    local targetPos = TargetActual.Position
+
+    -- Direction from NPC to Target
+    local direction = targetPos - npcPos
+    local distance = direction.Magnitude
+
+    if distance <= 0 then
+        return nil, nil
+    end
+
+    local config = ConfigHandler.GetActiveConfig(NPC)
+
+    -- Midpoint between NPC & Target
+    local midpoint = npcPos + (direction * 0.5)
+
+    -- Orientation facing toward the target
+    local lookCFrame = CFrame.lookAt(midpoint, targetPos)
+
+    -- Box size
+    local size = Vector3.new(
+        config.AgentInfo.AgentRadius * 2,                                               -- Width
+        config.DirectMoveTo.CollisionInferencing.YSizeOfCollider,                       -- Height
+        math.min(distance, config.DirectMoveTo.CollisionInferencing.MaxColliderRange)   -- Length along path
+    )
+
+    if config.Visualization.Enabled and config.Visualization.CollisionInferencing then
+        if timed + 0.5 < os.time() then
+            local part = Instance.new("Part")
+            part.Size = size
+            part.CFrame = lookCFrame
+            part.Anchored = true
+            part.CanCollide = false
+            part.Transparency = 0.5
+            part.Parent = workspace
+            timed = os.time()
+        end
+
+    end
+
+    return lookCFrame, size
+end
+
+API.isPathObstructedByColliders = function(NPC: Instance, Target: any): boolean
+
+	-- Get HumanoidRootPart and its collision group
+	
+    local NPCActual = Common.GetBasePart(NPC)
+    local TargetActual = Common.GetBasePart(Target, true, NPC)
+    if TargetActual == nil then error("This should not happen!") end
+
+    -- Positions
+    local npcPos = NPCActual.Position
+    local targetPos = TargetActual.Position
+
+    -- Direction from NPC to Target
+    local direction = targetPos - npcPos
+    local distance = direction.Magnitude
+
+    local config = ConfigHandler.GetActiveConfig(NPC)
+
+    -- if it is closer than the check minimum, just skip it.
+    if distance < config.DirectMoveTo.CollisionInferencing.MinColliderRange then return false end
+
+	-- Compute model's bounding box
+	local cframe, size = GetPathCheckBox(
+        NPC,
+        NPCActual,
+        TargetActual,
+        distance
+    )
+
+    if cframe and size then
+        local params = OverlapParams.new()
+        params.CollisionGroup = NPCActual.CollisionGroup
+        params.FilterType = Enum.RaycastFilterType.Exclude
+        params.FilterDescendantsInstances = {NPC, TargetActual, config.DirectMoveTo.Raycast.FilterTable}
+        -- print(Target)
+        -- print(typeof(Target) == "Instance")
+        -- print(Target:IsA("BasePart"))
+        if typeof(Target) == "Instance" then
+            if Target:IsA("Player") then
+                params:AddToFilter(Target.Character)
+            else
+                params:AddToFilter(Target)
+            end
+        end
+
+        local hits = workspace:GetPartBoundsInBox(cframe, size, params)
+
+        for _, part in ipairs(hits) do
+            if part.CanCollide then
+                -- print(part)
+                return true
+            end
+        end
+    end
+
+    return false
+end
+
 API.CanUseDirectMoveTo = function(NPC: Instance, Target: Instance): boolean
     
     local Config: AIT.Config = ConfigHandler.GetActiveConfig(NPC)
@@ -75,9 +179,13 @@ API.CanUseDirectMoveTo = function(NPC: Instance, Target: Instance): boolean
             if not CMathRequests.CanMoveToRaycast(NPC, Target) then ForbiddenDebugging.LogWithVerbosity(NPC, 5, "[" .. NPC:GetFullName() .. "] cannot see target."); return false end
         end
 
+        if Config.DirectMoveTo.CollisionInferencing.Enabled then
+            if API.isPathObstructedByColliders(NPC, Target) then ForbiddenDebugging.Log(NPC, "Failed CollisionInferencing"); return false end
+        end
+
         if Config.DirectMoveTo.CheckFloor.Enabled then
             if Common.GetDistanceFromNPCToTarget(NPC, Target) > Config.DirectMoveTo.CheckFloor.DisableIfDistanceIsLessThan then
-                if not CMathRequests.CanCrossFloorRaycast(NPC, Target) then ForbiddenDebugging.Log(NPC, "Failed cross floor check to target."); return false end
+                if CMathRequests.CanCrossFloorRaycast(NPC, Target) then ForbiddenDebugging.Log(NPC, "Failed cross floor check to target."); return false end
             end
         end
 
@@ -206,6 +314,7 @@ API.DoJumpTick = function(NPC: Instance, Target: any)
 
     return false
 end
+
 
 API.TriggerCleanup = function(NPC: Instance)
     TimedRequests[NPC] = nil

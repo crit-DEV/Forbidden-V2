@@ -11,7 +11,7 @@ Developer History
 local root  = script.Parent.Parent.Parent
 local AI    = root.AI
 local AIT                   = require(AI.Types)
-local ConfigHandler         = require(AI.ConfigHandler)
+-- local ConfigHandler         = require(AI.ConfigHandler)
 local Defaults              = require(AI.ConfigHandler.Defaults)
 local PathfindingProcessor  = require(AI.PathfindingProcessor)
 
