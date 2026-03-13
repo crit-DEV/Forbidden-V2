@@ -90,6 +90,7 @@ local function NewRequestHandler(data)
     -- Update Data
     data.StateMachine:ChangeData("Request", NextRequest)
     data.StateMachine:ChangeData("Target", NextRequest.Target)
+    data.Request.FinishedSignal = NextRequest.FinishedSignal -- whoops. Fixed!
 
 
     -- Change State
@@ -126,7 +127,8 @@ function Idle:OnEnter(data) -- Called whenever the state changes into "Blue"
     -- Finished Signal
     -- send old signal finished
 
-    if data.Request and data.Request.FinishedSignal then 
+    if data.Request and data.Request.FinishedSignal then
+        ForbiddenDebugging.Log("Sending end signal!")
         data.Request.FinishedSignal:Fire()
     end
 
