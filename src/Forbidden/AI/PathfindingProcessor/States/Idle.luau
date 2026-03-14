@@ -97,6 +97,11 @@ local function NewRequestHandler(data)
     if NextRequest.Target then
         -- print(ConfigHandler.GetConfig(config.NPC).Tracking.Enabled)
         -- print(ConfigHandler.GetActiveConfig(config.NPC).Tracking.Enabled)
+        if config.NPC == nil then
+            -- this would mean the NPC no longer exists, and would trigger error in console.
+            ForbiddenDebugging.Log("NPC NO LONGER EXISTS IN CONFIG REFERENCE | POSSIBLY DESTROYED.")
+            return
+        end
         config:ApplyNow() -- Apply the config to the NPC.
         task.spawn(config.Hooks.StartAcknowledged, config.NPC, NextRequest.Target)
         if config.Tracking.Enabled and typeof(NextRequest.Target) == "Instance" then
