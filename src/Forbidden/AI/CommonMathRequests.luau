@@ -17,6 +17,7 @@ local Common        = require(root.Common)
 local MathModule    = require(root.Math)
 local ConfigHandler = require(root.AI.ConfigHandler)
 local ForbiddenDebugging = require(root.AI.Debugging)
+local MathVisualization = require(root.Math.MathVisualization)
 
 -- == API Functions == --
 -- Target should be best of class (i.e. if char should be the model,   if part should be a part,   if pos should be the Common.GetBasePart)
@@ -34,54 +35,101 @@ end
 
 -- Checks if the floor is crossable (heuristic)
 API.CanCrossFloorRaycast = function(NPC: Instance, Target: any): boolean
-    
     local config = ConfigHandler.GetActiveConfig(NPC)
-    
-    -- Get parts
-    local npc_main      = Common.GetBasePart(NPC, true, NPC)
-    local target_main   = Common.GetBasePart(Target, true, NPC)
 
-    if npc_main == nil then error("Cannot get BasePart in NPC: " .. NPC:GetFullName()) end
-    if target_main == nil then error("Cannot get BasePart in Target: " .. Target:GetFullName()) end
+    local npc_main = Common.GetBasePart(NPC, true, NPC)
+    local target_main = Common.GetBasePart(Target, true, NPC)
 
-    -- Information
-    local subv3 = (target_main.CFrame.Position - npc_main.CFrame.Position)
-    local dist  = subv3.Magnitude
-    local dir   = subv3.Unit
+    if npc_main == nil then
+        error("Cannot get BasePart in NPC: " .. NPC:GetFullName())
+    end
 
-    -- Helpful Functions
-    local function ValidRaycastToGround(Position: Vector3)
-        
+    if target_main == nil then
+        local targetName = typeof(Target) == "Instance" and Target:GetFullName() or tostring(Target)
+        error("Cannot get BasePart in Target: " .. targetName)
+    end
+
+    local failHeight = config.DirectMoveTo.CheckFloor.FailHeight
+    local spacing = config.DirectMoveTo.CheckFloor.RaycastSpacing
+    local firstDist = config.DirectMoveTo.CheckFloor.AlwaysRaycastThisDistance
+
+    if failHeight <= 0 then
+        error("FailHeight must be > 0")
+    end
+
+    if spacing <= 0 then
+        error("RaycastSpacing must be > 0")
+    end
+
+    local subv3 = target_main.Position - npc_main.Position
+    local dist = subv3.Magnitude
+    if dist == 0 then
+        return true
+    end
+
+    local dir = subv3.Unit
+
+    local function ValidRaycastToGround(position: Vector3)
+
         local raycastParams = RaycastParams.new()
         local filterTable = {NPC}
-        if typeof(Target) == "Instance" then raycastParams:AddToFilter(Target) else raycastParams:AddToFilter(target_main) end
+
+        if typeof(Target) == "Instance" then
+            table.insert(filterTable, Target)
+        elseif target_main then
+            table.insert(filterTable, target_main)
+        end
+
         raycastParams.FilterDescendantsInstances = filterTable
         raycastParams.FilterType = Enum.RaycastFilterType.Exclude
         raycastParams.RespectCanCollide = true
 
-        local result = workspace:Raycast(Position, Vector3.new(0, -1, 0) * config.DirectMoveTo.CheckFloor.FailHeight, raycastParams)
-        -- ForbiddenDebugging.LogWithVerbosity(NPC, 5, "Distance To Ground: " .. tostring(result.Distance) .. " | Position: (" .. string.format("%.3f", result.Position.X) .. ", ", string.format("%.3f", result.Position.Y) .. ", " .. string.format("%.3f", result.Position.Z) .. ")")
+        local result = workspace:Raycast(
+            position,
+            Vector3.new(0, -failHeight, 0),
+            raycastParams
+        )
+
+        -- if config.Debugging.Enabled and config.Visualization.Enabled then
+
+        --     if not result then
+        --         MathVisualization.VisualizeRaycast(
+        --             config.NPC, 
+        --             position, 
+        --             Vector3.new(0, -failHeight, 0), 
+        --             result ~= nil
+        --         )
+        --     end
+        -- end
+
+        if result then
+            ForbiddenDebugging.LogWithVerbosity(
+                NPC,
+                5,
+                "Distance To Ground: " .. tostring(result.Distance) ..
+                " | Position: (" ..
+                string.format("%.3f", result.Position.X) .. ", " ..
+                string.format("%.3f", result.Position.Y) .. ", " ..
+                string.format("%.3f", result.Position.Z) .. ")"
+            )
+        end
+
         return result ~= nil
     end
 
-    -- AlwaysRaycastThisDistance proc
-    local function FirstRaycastValid()
-        if config.DirectMoveTo.CheckFloor.AlwaysRaycastThisDistance ~= 0 then -- check if feature enabled.
-            if dist > config.DirectMoveTo.CheckFloor.AlwaysRaycastThisDistance then return true end -- if too close return true.
-            return ValidRaycastToGround(npc_main.CFrame.Position + dir * config.DirectMoveTo.CheckFloor.AlwaysRaycastThisDistance)
+    if firstDist > 0 then
+        local sampleDist = math.min(dist, firstDist)
+        if not ValidRaycastToGround(npc_main.Position + dir * sampleDist) then
+            return false
         end
-
-        return true
     end
 
-    -- Check if valid
-    if not FirstRaycastValid() then return false end
-    
-    -- Check, starting from target, if the ground is valid every 5 places
     local distRemaining = dist
-    while distRemaining - config.DirectMoveTo.CheckFloor.RaycastSpacing > config.DirectMoveTo.CheckFloor.AlwaysRaycastThisDistance do
-        distRemaining -= config.DirectMoveTo.CheckFloor.RaycastSpacing
-        if not ValidRaycastToGround(npc_main.CFrame.Position + distRemaining * dir) then return false end
+    while distRemaining - spacing > firstDist do
+        distRemaining -= spacing
+        if not ValidRaycastToGround(npc_main.Position + dir * distRemaining) then
+            return false
+        end
     end
 
     return true
