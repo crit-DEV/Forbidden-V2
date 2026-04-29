@@ -167,7 +167,7 @@ Defaults.DirectMoveTo.CheckFloor.FailHeight                  = 12 -- If the dist
 Defaults.DirectMoveTo.CheckFloor.RaycastSpacing              = 5 -- How spaced out should the raycast be to the target.
 Defaults.DirectMoveTo.CheckFloor.AlwaysRaycastThisDistance   = 2 -- What distance should always be raycasted (in studs away from the NPC)
 Defaults.DirectMoveTo.CheckFloor.CheckFrequencyTimer         = 1 -- How often should the checks be done? (if possible)
-Defaults.DirectMoveTo.CheckFloor.BlockDirectMoveToTimer      = 3 -- How long should an attempt to do another DirectMoveTo call be blocked for.
+Defaults.DirectMoveTo.CheckFloor.BlockDirectMoveToTimer      = 3 -- How long should an attempt to do another DirectMoveTo call be blocked for. (ai safety)
 Defaults.DirectMoveTo.CheckFloor.DisableIfDistanceIsLessThan = Defaults.AgentInfo.AgentRadius * 3 -- If the distance to the target is less than this, it will not check the floor
 
 

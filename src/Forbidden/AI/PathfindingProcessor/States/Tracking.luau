@@ -154,7 +154,7 @@ function Tracking:OnHeartbeat(data) -- Called every heartbeat
     -- RECALL DISTANCE BLOCKER
     local distanceMoved = (data.LastTargetPosition - TargetBasePart.CFrame.Position).Magnitude
     if distanceMoved < config.Tracking.DistanceMovedThreshold and not data.UpdateRequired then
-        ForbiddenDebugging.LogWithVerbosity(NPC, 6, string.format("Distance moved requirement not exceeded. (%.3f)", distanceMoved))
+        ForbiddenDebugging.LogWithVerbosity(NPC, 7, string.format("Distance moved requirement not exceeded. (%.3f)", distanceMoved))
         return
     end
     

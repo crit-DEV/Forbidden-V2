@@ -25,6 +25,7 @@ local AIT = require(script.Parent.Types)
 local API = {}
 local TimedRequests: {[Instance]: {
     LastCheckFloorFailTime: number,
+    LastCheckFloorTime: number,
     JumpStuckTime: number,
     JumpDebounceTime: number
 }} = {}
@@ -143,10 +144,8 @@ API.CanUseDirectMoveTo = function(NPC: Instance, Target: Instance): boolean
     
     -- Check if req is blocked
     -- outside getRes bc otherwise infinite loop of time getting updated.
-    if not TimedRequests[NPC] then TimedRequests[NPC] = {LastCheckFloorFailTime = 0, JumpStuckTime = 0, JumpDebounceTime = 0} end
-    if TimedRequests[NPC] then
-        if os.clock() < TimedRequests[NPC].LastCheckFloorFailTime + Config.DirectMoveTo.CheckFloor.BlockDirectMoveToTimer then return false end
-    end
+    if not TimedRequests[NPC] then TimedRequests[NPC] = {LastCheckFloorFailTime = 0, LastCheckFloorTime = 0, JumpStuckTime = 0, JumpDebounceTime = 0} end
+    if os.clock() < TimedRequests[NPC].LastCheckFloorFailTime + Config.DirectMoveTo.CheckFloor.BlockDirectMoveToTimer then return false end
 
     -- If not an instance, then it is a position, which means it is non-tracking, which means we do not need this setting.
     local function getRes(): boolean
@@ -184,8 +183,16 @@ API.CanUseDirectMoveTo = function(NPC: Instance, Target: Instance): boolean
         end
 
         if Config.DirectMoveTo.CheckFloor.Enabled then
-            if Common.GetDistanceFromNPCToTarget(NPC, Target) > Config.DirectMoveTo.CheckFloor.DisableIfDistanceIsLessThan then
-                if CMathRequests.CanCrossFloorRaycast(NPC, Target) then ForbiddenDebugging.Log(NPC, "Failed cross floor check to target."); return false end
+            local freqCheck = os.clock() > TimedRequests[NPC].LastCheckFloorTime + Config.DirectMoveTo.CheckFloor.CheckFrequencyTimer
+            local distCheck = Common.GetDistanceFromNPCToTarget(NPC, Target) > Config.DirectMoveTo.CheckFloor.DisableIfDistanceIsLessThan
+
+            if distCheck and freqCheck then
+                if not CMathRequests.CanCrossFloorRaycast(NPC, Target) then 
+                    ForbiddenDebugging.Log(NPC, "Failed cross floor check to target.") 
+                    TimedRequests[NPC].LastCheckFloorFailTime = os.clock()
+                    return false 
+                end
+                TimedRequests[NPC].LastCheckFloorTime = os.clock()
             end
         end
 
@@ -236,7 +243,7 @@ API.DoJumpTick = function(NPC: Instance, Target: any)
     local NPCHuman: Humanoid? = NPC:FindFirstChildOfClass("Humanoid")
     if NPCHuman == nil then return end -- should not happen, but just in case.
 
-    if not TimedRequests[NPC] then TimedRequests[NPC] = {LastCheckFloorFailTime = 0, JumpStuckTime = 0, JumpDebounceTime = 0} end
+    if not TimedRequests[NPC] then TimedRequests[NPC] = {LastCheckFloorFailTime = 0, JumpStuckTime = 0, JumpDebounceTime = 0, LastCheckFloorTime = 0} end
     local config: AIT.Config = ConfigHandler.GetActiveConfig(NPC)
     if config.DirectMoveTo.JumpHandler.CustomJumpFunction then
         if config.DirectMoveTo.JumpHandler.CustomJumpFunction(NPC, Target) then

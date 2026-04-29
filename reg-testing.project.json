@@ -1,0 +1,24 @@
+{
+  "name": "ForbiddenAPI",
+  "tree": {
+
+    "$className": "DataModel",
+    
+    "ReplicatedStorage": {
+
+      "$className": "ReplicatedStorage",
+      "$ignoreUnknownInstances": true,
+      "Forbidden": {
+        "$path": "src/Forbidden",
+        "Packages":
+        {
+          "$path": "Packages"
+        }
+      }
+
+    }
+  },
+  "globIgnorePaths": [
+    "src/**/compile_exclude"
+  ]
+}

@@ -166,7 +166,10 @@ function Pathing:OnEnter(data) -- Called whenever the state changes into "Blue"
     WaypointLooper.StartContinuity(config.NPC, target, waypoints, completedSignal)
     -- Acknowledge the request is processed.
     ]]--
-    Pathing:Pathfind(data)
+    local res = Pathing:Pathfind(data)
+    if not res then -- emg. exit. 
+        data.StateMachine:ChangeState("Idle")
+    end
 end
 
 function Pathing:OnHeartbeat(data) -- Called every heartbeat

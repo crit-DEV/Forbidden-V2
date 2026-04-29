@@ -90,12 +90,18 @@ local function NewRequestHandler(data)
     -- Update Data
     data.StateMachine:ChangeData("Request", NextRequest)
     data.StateMachine:ChangeData("Target", NextRequest.Target)
+    data.Request.FinishedSignal = NextRequest.FinishedSignal -- whoops. Fixed!
 
 
     -- Change State
     if NextRequest.Target then
         -- print(ConfigHandler.GetConfig(config.NPC).Tracking.Enabled)
         -- print(ConfigHandler.GetActiveConfig(config.NPC).Tracking.Enabled)
+        if config.NPC == nil then
+            -- this would mean the NPC no longer exists, and would trigger error in console.
+            ForbiddenDebugging.Log("NPC NO LONGER EXISTS IN CONFIG REFERENCE | POSSIBLY DESTROYED.")
+            return
+        end
         config:ApplyNow() -- Apply the config to the NPC.
         task.spawn(config.Hooks.StartAcknowledged, config.NPC, NextRequest.Target)
         if config.Tracking.Enabled and typeof(NextRequest.Target) == "Instance" then
@@ -126,7 +132,8 @@ function Idle:OnEnter(data) -- Called whenever the state changes into "Blue"
     -- Finished Signal
     -- send old signal finished
 
-    if data.Request and data.Request.FinishedSignal then 
+    if data.Request and data.Request.FinishedSignal then
+        ForbiddenDebugging.Log("Sending end signal!")
         data.Request.FinishedSignal:Fire()
     end
 

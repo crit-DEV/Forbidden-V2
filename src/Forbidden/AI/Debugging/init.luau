@@ -1,16 +1,18 @@
 --[[ 6/27/25
 Not attached to the Config that way people don't send logs with their info mixed in :/
-    we can change in future if it would be convenient.
+we can change in future if it would be convenient.
 
 Developer History
-    > @crit-dev (@rman501), initial commit
-        o7 to future devs
+> @crit-dev (@rman501), initial commit
+o7 to future devs
 
 ]]--
 
+-- == Services == --
+local Debris = game:GetService("Debris")
+
 -- == Forbidden Modules & Architecture == --
 local ConfigHandler = require(script.Parent.ConfigHandler)
-
 
 -- == Setup == --
 local API = {}
@@ -82,6 +84,23 @@ API.TimeIt = function(name: string, callback: () -> ())
     end
 
     return elapsed, success, result
+end
+
+API.VisualizePosition = function(position: Vector3, lifetime: number, color: Color3, parent: Instance?)
+    local part = Instance.new("Part")
+    part.Shape = Enum.PartType.Ball
+    part.Color = color
+    part.CFrame = CFrame.new(position)
+    part.Anchored = true
+    part.CanCollide = false
+    part.CanQuery = false
+    part.CanTouch = false
+	part.Parent = workspace
+	if parent then
+		part.Parent = parent
+	end
+    Debris:AddItem(part, 1)
+    part = nil
 end
 
 return API
